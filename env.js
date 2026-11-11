@@ -1,10 +1,9 @@
 /**
  * env.js - Konfigurasi Supabase untuk browser
- * Key diambil otomatis dari Vercel Environment Variables via /api/env
- * Untuk lokal: diisi dari file .env secara otomatis oleh monyet.js
+ * Publishable key aman untuk dipush ke GitHub (hanya akses baca/tulis terbatas sesuai RLS policy).
  */
 window.ENV = {
-  SUPABASE_URL: '',
-  SUPABASE_ANON_KEY: '',
+  SUPABASE_URL: 'https://vcxsoyehjzzmjswubgkm.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_34i6junKxIyX6_nUdJVWHw_PmnoBaoP',
   SUPABASE_TABLE_NAME: 'leaderboard'
 };
