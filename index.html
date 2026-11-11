@@ -450,19 +450,28 @@
     const btnPlayAgain = document.getElementById('btnPlayAgain');
     const manualScoreForm = document.getElementById('manualScoreForm');
 
-    // Tab Switcher
-    tabGameBtn.addEventListener('click', () => {
+    // Tab Switcher - Sembunyikan leaderboard saat game ditampilkan dan sebaliknya
+    function showGameTab() {
       tabGameBtn.classList.add('active');
       tabLeaderboardBtn.classList.remove('active');
       gameSection.style.display = 'block';
-    });
+      leaderboardSection.style.display = 'none';
+    }
 
-    tabLeaderboardBtn.addEventListener('click', () => {
+    function showLeaderboardTab() {
       tabLeaderboardBtn.classList.add('active');
       tabGameBtn.classList.remove('active');
+      gameSection.style.display = 'none';
+      leaderboardSection.style.display = 'block';
       loadLeaderboard();
-      leaderboardSection.scrollIntoView({ behavior: 'smooth' });
-    });
+    }
+
+    tabGameBtn.addEventListener('click', showGameTab);
+    tabLeaderboardBtn.addEventListener('click', showLeaderboardTab);
+
+    // Default: tampilkan game dulu, sembunyikan leaderboard
+    gameSection.style.display = 'block';
+    leaderboardSection.style.display = 'none';
 
     // Inisialisasi Game
     const game = new MonkeyBananaShooter('gameCanvas');
@@ -506,7 +515,7 @@
           document.getElementById('gameOverModal').style.display = 'none';
           game.startGame();
           // Buka tab leaderboard agar pemain langsung melihat posisi peringkatnya
-          tabLeaderboardBtn.click();
+          showLeaderboardTab();
         }, 800);
       } catch (err) {
         alert('Gagal mengirim skor: ' + err.message);
@@ -538,7 +547,7 @@
       alert('Skor manual berhasil disimpan!');
     });
 
-    // Jalankan awal
+    // Jalankan awal - hanya load leaderboard di background, tampilkan game
     loadLeaderboard();
   </script>
 </body>

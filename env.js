@@ -1,7 +1,7 @@
 /**
- * env.js
- * Konfigurasi environment untuk browser (frontend)
- * Di Vercel atau Live Server, konfigurasi diambil otomatis dari .env / Vercel Environment Variables.
+ * env.js - Konfigurasi Supabase untuk browser
+ * Key diambil otomatis dari Vercel Environment Variables via /api/env
+ * Untuk lokal: diisi dari file .env secara otomatis oleh monyet.js
  */
 window.ENV = {
   SUPABASE_URL: '',
