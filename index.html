@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monkey Banana Shooter - Leaderboard Supabase</title>
+  <title>Monkey Banana Shooter - Game & Supabase Leaderboard</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,53 +13,52 @@
     }
 
     body {
-      background: radial-gradient(circle at top, #1e3a1e, #0a130a);
+      background: radial-gradient(circle at top, #193819, #081208);
       color: #f1f8e9;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 30px 15px;
+      padding: 20px 10px;
     }
 
-    .container {
+    .main-wrapper {
       width: 100%;
-      max-width: 650px;
-      background: rgba(25, 45, 25, 0.9);
-      border: 2px solid #4caf50;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
     }
 
     h1 {
-      text-align: center;
       color: #ffeb3b;
-      margin-bottom: 8px;
-      font-size: 26px;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      font-size: 28px;
+      text-shadow: 0 3px 6px rgba(0,0,0,0.6);
+      margin-bottom: 4px;
     }
 
     .subtitle {
-      text-align: center;
       color: #a5d6a7;
       font-size: 14px;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
     }
 
     .status-badge {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 8px;
-      padding: 8px 14px;
+      padding: 6px 16px;
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 20px;
       background: rgba(255, 193, 7, 0.15);
       border: 1px solid #ffc107;
       color: #ffe082;
+      margin-bottom: 10px;
     }
 
     .status-badge.online {
@@ -68,69 +67,188 @@
       color: #a5d6a7;
     }
 
-    .form-box {
-      background: rgba(0, 0, 0, 0.35);
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 24px;
-      border: 1px solid rgba(76, 175, 80, 0.3);
+    /* Tab Navigasi */
+    .tabs-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
     }
 
-    .form-title {
+    .tab-btn {
+      background: #1e3f1e;
+      border: 2px solid #388e3c;
+      color: #c8e6c9;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 24px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: #4caf50;
+      color: #0d260d;
+      border-color: #81c784;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+    }
+
+    /* Container Kotak */
+    .card {
+      background: rgba(25, 45, 25, 0.95);
+      border: 2px solid #388e3c;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    /* HUD Game */
+    .game-hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #112211;
+      padding: 10px 16px;
+      border-radius: 10px 10px 0 0;
+      border: 1px solid #2e7d32;
+      border-bottom: none;
       font-size: 14px;
       font-weight: bold;
-      color: #c8e6c9;
+    }
+
+    .hud-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-val {
+      color: #ffeb3b;
+    }
+
+    /* Canvas Wrapper */
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      background: #000;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+      border: 1px solid #2e7d32;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: crosshair;
+    }
+
+    /* Game Over Modal / Overlay */
+    .game-over-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 20, 10, 0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 10;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .go-title {
+      font-size: 32px;
+      color: #ff5252;
+      font-weight: 900;
       margin-bottom: 12px;
+      text-shadow: 0 2px 8px rgba(255, 82, 82, 0.5);
     }
 
-    .input-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr auto;
-      gap: 8px;
+    .go-stats {
+      display: flex;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 15px;
     }
 
-    @media (max-width: 550px) {
-      .input-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .input-grid button {
-        grid-column: span 2;
-      }
-    }
-
-    input {
-      background: #112211;
-      border: 1px solid #388e3c;
-      color: #fff;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #81c784;
-    }
-
-    button {
-      background: #4caf50;
-      color: #0b1d0c;
+    .go-stat-item span {
+      display: block;
+      font-size: 20px;
       font-weight: bold;
+      color: #ffeb3b;
+      text-align: center;
+    }
+
+    .go-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .go-form input {
+      background: #112211;
+      border: 2px solid #4caf50;
+      color: #fff;
+      font-size: 15px;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .go-form input:focus {
+      outline: none;
+      border-color: #ffeb3b;
+    }
+
+    .btn-submit-score {
+      background: #ffeb3b;
+      color: #1b3a1b;
+      font-size: 15px;
+      font-weight: 800;
+      padding: 12px;
       border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      transition: all 0.2s;
     }
 
-    button:hover {
-      background: #66bb6a;
+    .btn-submit-score:hover {
+      background: #fff;
+      transform: scale(1.02);
     }
 
-    button:active {
-      transform: scale(0.98);
+    .btn-play-again {
+      background: transparent;
+      color: #a5d6a7;
+      border: 1px solid #4caf50;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
+    .btn-play-again:hover {
+      background: rgba(76, 175, 80, 0.2);
+    }
+
+    /* Leaderboard Tabel */
     .actions-bar {
       display: flex;
       justify-content: space-between;
@@ -146,14 +264,22 @@
     .btn-refresh {
       background: #2e7d32;
       color: #fff;
-      font-size: 12px;
-      padding: 6px 12px;
+      font-size: 13px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-refresh:hover {
+      background: #388e3c;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.3);
       border-radius: 8px;
       overflow: hidden;
     }
@@ -181,151 +307,238 @@
       background: rgba(76, 175, 80, 0.15);
     }
 
-    .rank-gold {
-      color: #ffd700;
-      font-weight: bold;
-      font-size: 16px;
-    }
+    .rank-gold { color: #ffd700; font-weight: bold; font-size: 16px; }
+    .rank-silver { color: #c0c0c0; font-weight: bold; font-size: 15px; }
+    .rank-bronze { color: #cd7f32; font-weight: bold; font-size: 15px; }
 
-    .rank-silver {
-      color: #c0c0c0;
-      font-weight: bold;
-      font-size: 15px;
-    }
-
-    .rank-bronze {
-      color: #cd7f32;
-      font-weight: bold;
-      font-size: 15px;
-    }
-
-    .guide-tip {
-      margin-top: 20px;
-      padding: 12px;
-      background: rgba(33, 150, 243, 0.15);
-      border-left: 4px solid #2196f3;
-      border-radius: 4px;
+    /* Developer manual test accordion */
+    details {
+      margin-top: 15px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
       font-size: 13px;
-      line-height: 1.5;
-      color: #bbdefb;
+      border: 1px dashed #388e3c;
+    }
+    summary {
+      cursor: pointer;
+      color: #81c784;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>🍌 Monkey Banana Shooter</h1>
-    <p class="subtitle">Sistem Leaderboard Online Supabase</p>
+  <div class="main-wrapper">
+    <!-- Header -->
+    <header>
+      <h1>🍌 Monkey Banana Shooter</h1>
+      <p class="subtitle">Tembak Buah & Cetak Rekor Skor Tertinggi!</p>
+      <div id="statusBadge" class="status-badge">
+        <span>Memeriksa koneksi Supabase...</span>
+      </div>
+    </header>
 
-    <!-- Status Koneksi Supabase -->
-    <div id="statusBadge" class="status-badge">
-      <span>Memeriksa koneksi Supabase...</span>
+    <!-- Tombol Navigasi Tab -->
+    <div class="tabs-nav">
+      <button id="tabGameBtn" class="tab-btn active">🎮 Main Game</button>
+      <button id="tabLeaderboardBtn" class="tab-btn">🏆 Klasemen Online</button>
     </div>
 
-    <!-- Form Tambah Skor / Tes -->
-    <div class="form-box">
-      <div class="form-title">🎮 Uji Coba Kirim Skor Baru:</div>
-      <form id="scoreForm" class="input-grid">
-        <input type="text" id="inputName" placeholder="Nama Pemain" required maxlength="14" value="Monyet Jagoan">
-        <input type="number" id="inputScore" placeholder="Skor" required min="0" value="3500">
-        <input type="number" id="inputWave" placeholder="Wave" required min="1" value="5">
-        <input type="number" id="inputAccuracy" placeholder="Akurasi %" required min="0" max="100" value="85">
-        <button type="submit">+ Simpan</button>
-      </form>
+    <!-- 1. SECTION GAME PLAY -->
+    <div id="gameSection" class="card">
+      <!-- HUD Bilah Atas -->
+      <div class="game-hud">
+        <div class="hud-item">⭐ Skor: <span id="hudScore" class="hud-val">0</span></div>
+        <div class="hud-item">🌴 Wave: <span id="hudWave" class="hud-val">1</span></div>
+        <div class="hud-item">🎯 Akurasi: <span id="hudAccuracy" class="hud-val">100%</span></div>
+        <div class="hud-item"><span id="hudLives">❤️❤️❤️</span></div>
+      </div>
+
+      <!-- Area Game Canvas -->
+      <div class="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Popup Layar Game Over -->
+        <div id="gameOverModal" class="game-over-overlay">
+          <div class="go-title">💥 GAME OVER!</div>
+
+          <div class="go-stats">
+            <div class="go-stat-item">
+              Skor Akhir
+              <span id="finalScoreVal">0</span>
+            </div>
+            <div class="go-stat-item">
+              Wave
+              <span id="finalWaveVal">1</span>
+            </div>
+            <div class="go-stat-item">
+              Akurasi
+              <span id="finalAccuracyVal">0%</span>
+            </div>
+          </div>
+
+          <form id="saveScoreForm" class="go-form">
+            <input type="text" id="playerNameInput" placeholder="Ketik Nama Monyetmu" required maxlength="14" value="Monyet Jagoan">
+            <button type="submit" id="btnSubmitScore" class="btn-submit-score">🚀 Kirim Skor ke Leaderboard</button>
+            <button type="button" id="btnPlayAgain" class="btn-play-again">🔄 Main Lagi Tanpa Simpan</button>
+          </form>
+        </div>
+      </div>
     </div>
 
-    <!-- Header Tabel & Tombol Refresh -->
-    <div class="actions-bar">
-      <h2>🏆 Papan Peringkat Top 15</h2>
-      <button id="btnRefresh" class="btn-refresh">🔄 Refresh</button>
-    </div>
+    <!-- 2. SECTION LEADERBOARD -->
+    <div id="leaderboardSection" class="card">
+      <div class="actions-bar">
+        <h2>🏆 Papan Peringkat Top 15 (Supabase)</h2>
+        <button id="btnRefresh" class="btn-refresh">🔄 Refresh</button>
+      </div>
 
-    <!-- Tabel Leaderboard -->
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 15%;">Rank</th>
-          <th style="width: 35%;">Nama</th>
-          <th style="width: 25%;">Skor</th>
-          <th style="width: 12%;">Wave</th>
-          <th style="width: 13%;">Akurasi</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardBody">
-        <!-- Konten diisi otomatis oleh monyet.js -->
-      </tbody>
-    </table>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%;">Rank</th>
+            <th style="width: 35%;">Nama</th>
+            <th style="width: 25%;">Skor</th>
+            <th style="width: 12%;">Wave</th>
+            <th style="width: 13%;">Akurasi</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <!-- Diisi otomatis oleh monyet.js -->
+        </tbody>
+      </table>
 
-    <div class="guide-tip">
-      💡 <strong>Petunjuk:</strong> Buka file <code>monyet.js</code> baris 9-10 dan isi <code>SUPABASE_URL</code> serta <code>SUPABASE_ANON_KEY</code> dari dashboard Supabase Anda agar langsung terhubung ke database online!
+      <!-- Accordion untuk tes manual / debug -->
+      <details>
+        <summary>🛠️ Form Uji Coba Manual (Developer Test)</summary>
+        <form id="manualScoreForm" style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+          <input type="text" id="manualName" placeholder="Nama" value="Tester" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px;">
+          <input type="number" id="manualScore" placeholder="Skor" value="2500" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px; width:90px;">
+          <input type="number" id="manualWave" placeholder="Wave" value="3" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px; width:70px;">
+          <input type="number" id="manualAcc" placeholder="Akurasi" value="80" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px; width:70px;">
+          <button type="submit" style="background:#4caf50; color:#0b1d0c; border:none; padding:6px 12px; font-weight:bold; border-radius:4px; cursor:pointer;">+ Kirim</button>
+        </form>
+      </details>
     </div>
   </div>
 
-  <!-- 1. Muat Supabase JS Library dari CDN resmi -->
+  <!-- 1. Muat Supabase Library resmi dari CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- 2. Muat konfigurasi environment (mendukung .env dan env.js) -->
+  <!-- 2. Muat konfigurasi environment -->
   <script src="env.js"></script>
 
-  <!-- 3. Muat logika Leaderboard Manager & Konfigurasi Supabase -->
+  <!-- 3. Muat Leaderboard Manager (Supabase Database) -->
   <script src="monyet.js"></script>
 
-  <!-- 3. Script inisialisasi UI -->
+  <!-- 4. Muat Game Engine Monkey Banana Shooter -->
+  <script src="game.js"></script>
+
+  <!-- 5. Script Penghubung UI & Game Loop -->
   <script>
     const tbody = document.getElementById('leaderboardBody');
     const statusBadge = document.getElementById('statusBadge');
-    const scoreForm = document.getElementById('scoreForm');
     const btnRefresh = document.getElementById('btnRefresh');
 
-    // Cek status koneksi Supabase
+    const tabGameBtn = document.getElementById('tabGameBtn');
+    const tabLeaderboardBtn = document.getElementById('tabLeaderboardBtn');
+    const gameSection = document.getElementById('gameSection');
+    const leaderboardSection = document.getElementById('leaderboardSection');
+
+    const saveScoreForm = document.getElementById('saveScoreForm');
+    const btnPlayAgain = document.getElementById('btnPlayAgain');
+    const manualScoreForm = document.getElementById('manualScoreForm');
+
+    // Tab Switcher
+    tabGameBtn.addEventListener('click', () => {
+      tabGameBtn.classList.add('active');
+      tabLeaderboardBtn.classList.remove('active');
+      gameSection.style.display = 'block';
+    });
+
+    tabLeaderboardBtn.addEventListener('click', () => {
+      tabLeaderboardBtn.classList.add('active');
+      tabGameBtn.classList.remove('active');
+      loadLeaderboard();
+      leaderboardSection.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Inisialisasi Game
+    const game = new MonkeyBananaShooter('gameCanvas');
+
+    // Cek Status Supabase
     function updateConnectionStatus() {
-      const isOnline = (window.leaderboardManager && typeof window.leaderboardManager.isSupabaseReady === 'function' && window.leaderboardManager.isSupabaseReady()) ||
-                       (window.SupabaseService && typeof window.SupabaseService.isReady === 'function' && window.SupabaseService.isReady());
+      const isOnline = (window.leaderboardManager && typeof window.leaderboardManager.isSupabaseReady === 'function' && window.leaderboardManager.isSupabaseReady());
       if (isOnline) {
         statusBadge.className = 'status-badge online';
         statusBadge.innerHTML = '🟢 Terhubung ke Database Online Supabase';
       } else {
         statusBadge.className = 'status-badge';
-        statusBadge.innerHTML = '🟡 Mode Offline / LocalStorage (Isi URL & Key di monyet.js)';
+        statusBadge.innerHTML = '🟡 Mode Offline / LocalStorage (Cadangan)';
       }
     }
 
-    // Render leaderboard saat halaman pertama kali dibuka
+    // Load Data Leaderboard
     async function loadLeaderboard() {
       await leaderboardManager.renderToTable(tbody);
       updateConnectionStatus();
     }
 
-    // Event listener: Simpan skor baru
-    scoreForm.addEventListener('submit', async (e) => {
+    // Form Game Over: Kirim Skor ke Supabase
+    saveScoreForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById('inputName').value;
-      const score = Number(document.getElementById('inputScore').value);
-      const wave = Number(document.getElementById('inputWave').value);
-      const accuracy = Number(document.getElementById('inputAccuracy').value);
+      const playerName = document.getElementById('playerNameInput').value.trim() || 'Monyet Misterius';
+      const score = game.score;
+      const wave = game.wave;
+      const accuracy = game.shotsFired > 0 ? Math.round((game.shotsHit / game.shotsFired) * 100) : 0;
 
-      const submitBtn = scoreForm.querySelector('button[type="submit"]');
+      const submitBtn = document.getElementById('btnSubmitScore');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Menyimpan...';
+      submitBtn.innerText = 'Mengirim ke Supabase...';
 
       try {
-        await leaderboardManager.saveScore(name, score, wave, accuracy);
-        await leaderboardManager.renderToTable(tbody);
-        alert('🎉 Skor berhasil disimpan!');
+        await leaderboardManager.saveScore(playerName, score, wave, accuracy);
+        await loadLeaderboard();
+
+        submitBtn.innerText = '✅ Skor Tersimpan!';
+        setTimeout(() => {
+          document.getElementById('gameOverModal').style.display = 'none';
+          game.startGame();
+          // Buka tab leaderboard agar pemain langsung melihat posisi peringkatnya
+          tabLeaderboardBtn.click();
+        }, 800);
       } catch (err) {
-        alert('Gagal menyimpan skor: ' + err.message);
-      } finally {
+        alert('Gagal mengirim skor: ' + err.message);
         submitBtn.disabled = false;
-        submitBtn.textContent = '+ Simpan';
+        submitBtn.innerText = '🚀 Kirim Skor ke Leaderboard';
       }
     });
 
-    // Event listener: Tombol Refresh
+    // Tombol Main Lagi dari Game Over
+    btnPlayAgain.addEventListener('click', () => {
+      document.getElementById('gameOverModal').style.display = 'none';
+      game.startGame();
+    });
+
+    // Tombol Refresh Leaderboard
     btnRefresh.addEventListener('click', async () => {
       await loadLeaderboard();
     });
 
-    // Inisialisasi awal
+    // Form Manual Test
+    manualScoreForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const n = document.getElementById('manualName').value;
+      const s = Number(document.getElementById('manualScore').value);
+      const w = Number(document.getElementById('manualWave').value);
+      const a = Number(document.getElementById('manualAcc').value);
+      await leaderboardManager.saveScore(n, s, w, a);
+      await loadLeaderboard();
+      alert('Skor manual berhasil disimpan!');
+    });
+
+    // Jalankan awal
     loadLeaderboard();
   </script>
 </body>
