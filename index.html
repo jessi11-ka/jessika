@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monkey Banana Shooter - Leaderboard Supabase</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1e3a1e, #0a130a);
+      color: #f1f8e9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      background: rgba(25, 45, 25, 0.9);
+      border: 2px solid #4caf50;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    h1 {
+      text-align: center;
+      color: #ffeb3b;
+      margin-bottom: 8px;
+      font-size: 26px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #a5d6a7;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      background: rgba(255, 193, 7, 0.15);
+      border: 1px solid #ffc107;
+      color: #ffe082;
+    }
+
+    .status-badge.online {
+      background: rgba(76, 175, 80, 0.2);
+      border-color: #4caf50;
+      color: #a5d6a7;
+    }
+
+    .form-box {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .form-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #c8e6c9;
+      margin-bottom: 12px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 8px;
+    }
+
+    @media (max-width: 550px) {
+      .input-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .input-grid button {
+        grid-column: span 2;
+      }
+    }
+
+    input {
+      background: #112211;
+      border: 1px solid #388e3c;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #81c784;
+    }
+
+    button {
+      background: #4caf50;
+      color: #0b1d0c;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: #66bb6a;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .actions-bar h2 {
+      font-size: 18px;
+      color: #ffeb3b;
+    }
+
+    .btn-refresh {
+      background: #2e7d32;
+      color: #fff;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #2e7d32;
+      color: #ffffff;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    tr:hover {
+      background: rgba(76, 175, 80, 0.15);
+    }
+
+    .rank-gold {
+      color: #ffd700;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .rank-silver {
+      color: #c0c0c0;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .rank-bronze {
+      color: #cd7f32;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .guide-tip {
+      margin-top: 20px;
+      padding: 12px;
+      background: rgba(33, 150, 243, 0.15);
+      border-left: 4px solid #2196f3;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #bbdefb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🍌 Monkey Banana Shooter</h1>
+    <p class="subtitle">Sistem Leaderboard Online Supabase</p>
+
+    <!-- Status Koneksi Supabase -->
+    <div id="statusBadge" class="status-badge">
+      <span>Memeriksa koneksi Supabase...</span>
+    </div>
+
+    <!-- Form Tambah Skor / Tes -->
+    <div class="form-box">
+      <div class="form-title">🎮 Uji Coba Kirim Skor Baru:</div>
+      <form id="scoreForm" class="input-grid">
+        <input type="text" id="inputName" placeholder="Nama Pemain" required maxlength="14" value="Monyet Jagoan">
+        <input type="number" id="inputScore" placeholder="Skor" required min="0" value="3500">
+        <input type="number" id="inputWave" placeholder="Wave" required min="1" value="5">
+        <input type="number" id="inputAccuracy" placeholder="Akurasi %" required min="0" max="100" value="85">
+        <button type="submit">+ Simpan</button>
+      </form>
+    </div>
+
+    <!-- Header Tabel & Tombol Refresh -->
+    <div class="actions-bar">
+      <h2>🏆 Papan Peringkat Top 15</h2>
+      <button id="btnRefresh" class="btn-refresh">🔄 Refresh</button>
+    </div>
+
+    <!-- Tabel Leaderboard -->
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 15%;">Rank</th>
+          <th style="width: 35%;">Nama</th>
+          <th style="width: 25%;">Skor</th>
+          <th style="width: 12%;">Wave</th>
+          <th style="width: 13%;">Akurasi</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody">
+        <!-- Konten diisi otomatis oleh monyet.js -->
+      </tbody>
+    </table>
+
+    <div class="guide-tip">
+      💡 <strong>Petunjuk:</strong> Buka file <code>monyet.js</code> baris 9-10 dan isi <code>SUPABASE_URL</code> serta <code>SUPABASE_ANON_KEY</code> dari dashboard Supabase Anda agar langsung terhubung ke database online!
+    </div>
+  </div>
+
+  <!-- 1. Muat Supabase JS Library dari CDN resmi -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- 2. Muat konfigurasi environment (mendukung .env dan env.js) -->
+  <script src="env.js"></script>
+
+  <!-- 3. Muat logika Leaderboard Manager & Konfigurasi Supabase -->
+  <script src="monyet.js"></script>
+
+  <!-- 3. Script inisialisasi UI -->
+  <script>
+    const tbody = document.getElementById('leaderboardBody');
+    const statusBadge = document.getElementById('statusBadge');
+    const scoreForm = document.getElementById('scoreForm');
+    const btnRefresh = document.getElementById('btnRefresh');
+
+    // Cek status koneksi Supabase
+    function updateConnectionStatus() {
+      const isOnline = (window.leaderboardManager && typeof window.leaderboardManager.isSupabaseReady === 'function' && window.leaderboardManager.isSupabaseReady()) ||
+                       (window.SupabaseService && typeof window.SupabaseService.isReady === 'function' && window.SupabaseService.isReady());
+      if (isOnline) {
+        statusBadge.className = 'status-badge online';
+        statusBadge.innerHTML = '🟢 Terhubung ke Database Online Supabase';
+      } else {
+        statusBadge.className = 'status-badge';
+        statusBadge.innerHTML = '🟡 Mode Offline / LocalStorage (Isi URL & Key di monyet.js)';
+      }
+    }
+
+    // Render leaderboard saat halaman pertama kali dibuka
+    async function loadLeaderboard() {
+      await leaderboardManager.renderToTable(tbody);
+      updateConnectionStatus();
+    }
+
+    // Event listener: Simpan skor baru
+    scoreForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('inputName').value;
+      const score = Number(document.getElementById('inputScore').value);
+      const wave = Number(document.getElementById('inputWave').value);
+      const accuracy = Number(document.getElementById('inputAccuracy').value);
+
+      const submitBtn = scoreForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Menyimpan...';
+
+      try {
+        await leaderboardManager.saveScore(name, score, wave, accuracy);
+        await leaderboardManager.renderToTable(tbody);
+        alert('🎉 Skor berhasil disimpan!');
+      } catch (err) {
+        alert('Gagal menyimpan skor: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '+ Simpan';
+      }
+    });
+
+    // Event listener: Tombol Refresh
+    btnRefresh.addEventListener('click', async () => {
+      await loadLeaderboard();
+    });
+
+    // Inisialisasi awal
+    loadLeaderboard();
+  </script>
+</body>
+</html>
