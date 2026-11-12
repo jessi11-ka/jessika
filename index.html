@@ -273,6 +273,72 @@
       user-select: all;
     }
 
+    /* ─── INTRO SPLASH SCREEN (DIAWAL SEBELUM GAME MENU) ─── */
+    #introSplashScreen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #1b5e20 0%, #0d3810 50%, #031205 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      text-align: center;
+      padding: 20px;
+      cursor: pointer;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    #introSplashScreen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .splash-logos-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .splash-logo-card {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 214, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 125px;
+      height: 125px;
+      border: 3px solid #ffd600;
+      transition: transform 0.25s ease;
+    }
+    .splash-logo-card:hover {
+      transform: scale(1.06);
+    }
+    .splash-logo-card img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .splash-made-by {
+      font-size: 26px;
+      font-weight: 900;
+      color: #ffd600;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9), 0 0 16px rgba(255, 214, 0, 0.7);
+      margin-top: 12px;
+      letter-spacing: 1.2px;
+    }
+    .splash-institutions {
+      font-size: 13px;
+      font-weight: 800;
+      color: #b9f6ca;
+      margin-top: 6px;
+      margin-bottom: 22px;
+      letter-spacing: 0.8px;
+    }
+
     /* Tables */
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
     th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(76, 175, 80, 0.25); }
@@ -284,6 +350,40 @@
   </style>
 </head>
 <body>
+
+  <!-- ══════════════════════════════════════════════
+       INTRO SPLASH SCREEN (DIAWAL SEBELUM GAME MENU)
+  ══════════════════════════════════════════════ -->
+  <div id="introSplashScreen">
+    <div class="splash-logos-row">
+      <div class="splash-logo-card">
+        <img src="assets/logo-upit.png" alt="Universitas Pignatelli Triputra">
+      </div>
+      <div class="splash-logo-card">
+        <img src="assets/logo-kalam-kudus.png" alt="Kalam Kudus">
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: #a5d6a7; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
+      PRESENTED BY
+    </div>
+    <div class="splash-institutions">
+      UNIVERSITAS PIGNATELLI TRIPUTRA &bull; KALAM KUDUS
+    </div>
+
+    <div class="splash-made-by">
+      ✨ made by Jessica Daniellyn ✨
+    </div>
+
+    <div style="margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      <button id="btnEnterGame" class="arcade-btn btn-gold" style="font-size: 15px; padding: 12px 34px;">
+        ▶ MASUK KE GAME MENU
+      </button>
+      <div style="font-size: 11.5px; color: #a5d6a7;">
+        (Klik tombol atau layar untuk langsung masuk)
+      </div>
+    </div>
+  </div>
 
   <div class="wrapper">
 
@@ -307,6 +407,11 @@
       <div>
         <div class="game-logo">MONKEY BANANA<br>SHOOTER</div>
         <div class="game-subtitle">✨ VIBRANT COLORFUL PIXEL EDITION ✨</div>
+        <div style="margin-top:6px;">
+          <span style="display:inline-block; font-size:12px; font-weight:800; color:#ffd600; background:rgba(0,0,0,0.4); padding:4px 14px; border-radius:20px; border:1.5px solid #4caf50;">
+            🎓 made by Jessica Daniellyn
+          </span>
+        </div>
       </div>
       <div style="font-size: 12.5px; color: #c8e6c9; max-width: 440px; line-height: 1.4;">
         Lawan pemburu & zookeeper mecha! Nyawa 5 Hati + Energy Shield anti-mati mendadak. Main Solo atau Online bareng teman pakai Kode Room!
@@ -559,14 +664,50 @@
     let currentPeer = null;
     let activeConnection = null;
 
+    // ── INTRO SPLASH SCREEN LOGIC (DIAWAL SEBELUM GAME MENU) ──
+    let splashDismissed = false;
+    function dismissSplashScreen() {
+      if (splashDismissed) return;
+      splashDismissed = true;
+      const splash = document.getElementById('introSplashScreen');
+      if (splash) {
+        splash.classList.add('fade-out');
+        setTimeout(() => {
+          splash.style.display = 'none';
+          // Setelah splash selesai, cek status login
+          const activeUser = window.accountManager.getCurrentUser();
+          if (!activeUser) {
+            document.getElementById('modalLoginPrompt').style.display = 'flex';
+          } else {
+            updateUserBar();
+          }
+        }, 500);
+      }
+    }
+
     // ── INITIAL LOAD ──
     window.addEventListener('DOMContentLoaded', () => {
-      const activeUser = window.accountManager.getCurrentUser();
-      if (!activeUser) {
-        document.getElementById('modalLoginPrompt').style.display = 'flex';
-      } else {
-        updateUserBar();
+      updateUserBar();
+
+      // Tombol Masuk Game
+      const btnEnter = document.getElementById('btnEnterGame');
+      if (btnEnter) {
+        btnEnter.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dismissSplashScreen();
+        });
       }
+
+      // Klik di area mana saja pada splash screen untuk masuk
+      const splashEl = document.getElementById('introSplashScreen');
+      if (splashEl) {
+        splashEl.addEventListener('click', dismissSplashScreen);
+      }
+
+      // Otomatis masuk setelah 3.5 detik
+      setTimeout(() => {
+        dismissSplashScreen();
+      }, 3500);
     });
 
     function updateUserBar() {
