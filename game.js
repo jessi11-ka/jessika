@@ -926,13 +926,14 @@ class MonkeyBananaShooter {
             this._spawnParticles(this.currentBoss.x, this.currentBoss.y, '#ffd600', 35);
             this._addFloatingText(this.currentBoss.x, this.currentBoss.y, '🏆 BOSS DEFEATED!', '#76ff03', 50);
 
-            // Drop Hadiah Banyak!
-            for (let g = 0; g < 8; g++) {
+            // Drop Hadiah Banyak (Total 20 Gems dari Boss)!
+            for (let g = 0; g < 10; g++) {
               this.itemDrops.push({
                 type: 'gem',
-                x: this.currentBoss.x + (Math.random() - 0.5) * 60,
-                y: this.currentBoss.y + (Math.random() - 0.5) * 60,
-                life: 700,
+                amount: 2,
+                x: this.currentBoss.x + (Math.random() - 0.5) * 70,
+                y: this.currentBoss.y + (Math.random() - 0.5) * 70,
+                life: 750,
                 floatOffset: Math.random() * Math.PI * 2
               });
             }
@@ -1025,14 +1026,15 @@ class MonkeyBananaShooter {
   // ── RANDOM ITEM DROPS ──
   _dropRandomItem(x, y) {
     const r = Math.random();
-    if (r < 0.28) {
-      // 28% drop Gems
-      this.itemDrops.push({ type: 'gem', x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
-    } else if (r < 0.45) {
-      // 17% drop Ammo
+    if (r < 0.35) {
+      // 35% drop Gems (drop 1 atau 2 gems!)
+      const amount = Math.random() > 0.5 ? 2 : 1;
+      this.itemDrops.push({ type: 'gem', amount: amount, x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
+    } else if (r < 0.55) {
+      // 20% drop Ammo
       this.itemDrops.push({ type: 'ammo', x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
-    } else if (r < 0.58) {
-      // 13% drop Medkit / Heart
+    } else if (r < 0.70) {
+      // 15% drop Medkit / Heart
       this.itemDrops.push({ type: 'health', x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
     }
   }
@@ -1051,9 +1053,10 @@ class MonkeyBananaShooter {
         const d = Math.hypot(item.x - p.x, item.y - p.y);
         if (d < p.radius + 18) {
           if (item.type === 'gem') {
-            this.gemsCollected++;
+            const amt = item.amount || 1;
+            this.gemsCollected += amt;
             this.sfx.playPickup('gem');
-            this._addFloatingText(item.x, item.y - 15, '+1 GEM 💎', '#00e5ff', 24);
+            this._addFloatingText(item.x, item.y - 15, `+${amt} GEM 💎`, '#00e5ff', 24);
           } else if (item.type === 'ammo') {
             p.ammoStock = Math.min(250, p.ammoStock + 24);
             this.sfx.playPickup('ammo');

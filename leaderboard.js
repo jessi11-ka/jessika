@@ -133,17 +133,25 @@ class AccountManager {
       if (session) {
         const parsed = JSON.parse(session);
         const accounts = this._getAllAccounts();
-        if (accounts[parsed.username]) {
+        if (parsed && parsed.username && accounts[parsed.username]) {
           this.currentUser = accounts[parsed.username];
-          this.checkSkinUnlocks();
-        } else if (parsed.isGuest) {
+        } else if (parsed && parsed.username) {
           this.currentUser = parsed;
+        }
+        if (this.currentUser) {
+          this.currentUser.gems = Math.max(30, parseInt(this.currentUser.gems) || 0);
+          this.currentUser.totalScore = parseInt(this.currentUser.totalScore) || 0;
+          this.currentUser.highScore = parseInt(this.currentUser.highScore) || 0;
+          this._persistCurrent();
         }
       }
     } catch (_) {}
   }
 
   getCurrentUser() {
+    if (!this.currentUser) {
+      this._loadSession();
+    }
     return this.currentUser;
   }
 
@@ -151,39 +159,28 @@ class AccountManager {
     const cleanName = (username || '').trim() || (isGuest ? 'Tamu Rimba' : 'Monyet Jagoan');
     const accounts = this._getAllAccounts();
 
-    if (isGuest) {
-      this.currentUser = {
+    if (!accounts[cleanName]) {
+      // Akun Baru: Diberikan bonus awal 35 Gems agar pemain bisa langsung menabung
+      accounts[cleanName] = {
         username: cleanName,
-        isGuest: true,
+        isGuest: isGuest,
         totalScore: 0,
         highScore: 0,
-        gems: 10,
+        gems: 35, // Bonus awal melimpah
         weaponLevel: 1,
         equippedSkin: 'classic',
         unlockedSkins: ['classic']
       };
-    } else {
-      if (!accounts[cleanName]) {
-        // Buat akun baru
-        accounts[cleanName] = {
-          username: cleanName,
-          isGuest: false,
-          totalScore: 0,
-          highScore: 0,
-          gems: 25, // bonus awal
-          weaponLevel: 1,
-          equippedSkin: 'classic',
-          unlockedSkins: ['classic']
-        };
-        this._saveAllAccounts(accounts);
-      }
-      this.currentUser = accounts[cleanName];
+      this._saveAllAccounts(accounts);
     }
 
-    try {
-      localStorage.setItem(this.currentKey, JSON.stringify(this.currentUser));
-    } catch (_) {}
+    this.currentUser = accounts[cleanName];
+    // Pastikan gems tidak ter-reset atau bug mentok
+    this.currentUser.gems = Math.max(35, parseInt(this.currentUser.gems) || 0);
+    this.currentUser.totalScore = parseInt(this.currentUser.totalScore) || 0;
+    this.currentUser.highScore = parseInt(this.currentUser.highScore) || 0;
 
+    this._persistCurrent();
     return this.currentUser;
   }
 
@@ -194,15 +191,29 @@ class AccountManager {
     } catch (_) {}
   }
 
+  // Tambah Gems secara persisten tanpa batas maksimal (bisa ratusan/ribuan gems!)
+  addGems(amount) {
+    if (!this.currentUser) this.login('Tamu Rimba', true);
+    const added = parseInt(amount) || 0;
+    this.currentUser.gems = (parseInt(this.currentUser.gems) || 0) + added;
+    this._persistCurrent();
+    return this.currentUser.gems;
+  }
+
+  // Tambah Skor Poin
+  addScore(amount) {
+    if (!this.currentUser) this.login('Tamu Rimba', true);
+    const added = parseInt(amount) || 0;
+    this.currentUser.totalScore = (parseInt(this.currentUser.totalScore) || 0) + added;
+    this.currentUser.highScore = Math.max(parseInt(this.currentUser.highScore) || 0, added);
+    this._persistCurrent();
+    return this.currentUser.totalScore;
+  }
+
   // Simpan hasil permainan (Poin akumulasi, Highscore, Gems)
   addGameResult(score, gems) {
-    if (!this.currentUser) return;
-
-    this.currentUser.totalScore = (this.currentUser.totalScore || 0) + score;
-    this.currentUser.highScore = Math.max(this.currentUser.highScore || 0, score);
-    this.currentUser.gems = (this.currentUser.gems || 0) + gems;
-
-    this._persistCurrent();
+    this.addScore(score);
+    this.addGems(gems);
   }
 
   // Beli Skin dengan Gems (Sesuai Permintaan: Hanya bisa dibuka dengan dibeli!)
@@ -261,11 +272,9 @@ class AccountManager {
 
   _persistCurrent() {
     if (!this.currentUser) return;
-    if (!this.currentUser.isGuest) {
-      const accounts = this._getAllAccounts();
-      accounts[this.currentUser.username] = this.currentUser;
-      this._saveAllAccounts(accounts);
-    }
+    const accounts = this._getAllAccounts();
+    accounts[this.currentUser.username] = this.currentUser;
+    this._saveAllAccounts(accounts);
     try {
       localStorage.setItem(this.currentKey, JSON.stringify(this.currentUser));
     } catch (_) {}
