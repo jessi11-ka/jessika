@@ -639,8 +639,8 @@
       </div>
 
       <div style="display:flex; flex-direction:column; gap:9px;">
-        <button id="btnSaveAndExit" class="arcade-btn btn-gold">💾 SIMPAN HASIL KE SUPABASE & MENU</button>
-        <button id="btnPlayAgain" class="arcade-btn">🔄 MAIN LAGI LANGSUNG</button>
+        <button id="btnSaveAndExit" class="arcade-btn btn-gold" style="font-size:14px; padding:12px;">🏠 SIMPAN HASIL & KEMBALI KE MAIN MENU</button>
+        <button id="btnPlayAgain" class="arcade-btn" style="font-size:13px; padding:10px;">🔄 MAIN LAGI LANGSUNG</button>
       </div>
     </div>
   </div>
@@ -936,30 +936,57 @@
 
       document.getElementById('modalGameOver').style.display = 'flex';
 
+      // Tombol Simpan Hasil & Kembali ke Main Menu
       const btnSave = document.getElementById('btnSaveAndExit');
+      btnSave.disabled = false;
+      btnSave.textContent = '🏠 SIMPAN HASIL & KEMBALI KE MAIN MENU';
+
       btnSave.onclick = async () => {
         btnSave.disabled = true;
-        btnSave.textContent = '⏳ Menyimpan ke Supabase...';
+        btnSave.textContent = '⏳ Menyimpan...';
 
-        const user = window.accountManager.getCurrentUser();
-        const uname = user ? user.username : 'MonyetSakti';
+        try {
+          const user = window.accountManager.getCurrentUser();
+          const uname = user ? user.username : 'MonyetSakti';
 
-        await window.leaderboardManager.saveScore(uname, score, wave, acc);
-        window.accountManager.addGems(gems);
-        window.accountManager.addScore(score);
+          // 1. Simpan Gems & Score ke akun lokal secara instan
+          window.accountManager.addGems(gems);
+          window.accountManager.addScore(score);
 
-        btnSave.disabled = false;
-        btnSave.textContent = '💾 SIMPAN HASIL KE SUPABASE & MENU';
-        document.getElementById('modalGameOver').style.display = 'none';
-        document.getElementById('gameScreen').style.display = 'none';
-        document.getElementById('menuScreen').style.display = 'flex';
-        updateUserBar();
+          // 2. Simpan ke Supabase Leaderboard (maksimal tunggu 1.5 detik agar pemain tidak pernah macet)
+          await Promise.race([
+            window.leaderboardManager.saveScore(uname, score, wave, acc),
+            new Promise(res => setTimeout(res, 1500))
+          ]);
+        } catch (err) {
+          console.warn("Save score warning:", err);
+        } finally {
+          // 3. Pastikan engine game berhenti
+          if (currentGame) {
+            currentGame.running = false;
+            currentGame.over = true;
+          }
+          if (hudLoopInterval) clearInterval(hudLoopInterval);
+
+          // 4. Tutup Game Over dan KEMBALI KE MAIN MENU
+          document.getElementById('modalGameOver').style.display = 'none';
+          document.getElementById('gameScreen').style.display = 'none';
+          document.getElementById('menuScreen').style.display = 'flex';
+          updateUserBar();
+        }
       };
 
+      // Tombol Main Lagi Langsung
       const btnAgain = document.getElementById('btnPlayAgain');
       btnAgain.onclick = () => {
-        window.accountManager.addGems(gems);
-        window.accountManager.addScore(score);
+        try {
+          window.accountManager.addGems(gems);
+          window.accountManager.addScore(score);
+          const user = window.accountManager.getCurrentUser();
+          const uname = user ? user.username : 'MonyetSakti';
+          window.leaderboardManager.saveScore(uname, score, wave, acc).catch(() => {});
+        } catch (_) {}
+
         document.getElementById('modalGameOver').style.display = 'none';
         startActiveGame({ isDuo: false, isOnline: false });
       };

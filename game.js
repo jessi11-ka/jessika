@@ -654,7 +654,7 @@ class MonkeyBananaShooter {
     // 8. CEK GAME OVER: HANYA JIKA SELURUH NYAWA BENAR-BENAR 0!
     const p1Dead = this.p1.lives <= 0;
     const p2Dead = this.isDuo ? (!this.p2 || this.p2.lives <= 0) : true;
-    if (p1Dead && p2Dead) {
+    if (!this.over && p1Dead && p2Dead) {
       this._triggerGameOver();
     }
   }
@@ -1095,6 +1095,7 @@ class MonkeyBananaShooter {
   }
 
   _triggerGameOver() {
+    if (this.over) return;
     this.running = false;
     this.over = true;
     if (typeof window.onGameOver === 'function') {
