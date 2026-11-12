@@ -178,7 +178,6 @@ class AccountManager {
         this._saveAllAccounts(accounts);
       }
       this.currentUser = accounts[cleanName];
-      this.checkSkinUnlocks();
     }
 
     try {
@@ -203,35 +202,34 @@ class AccountManager {
     this.currentUser.highScore = Math.max(this.currentUser.highScore || 0, score);
     this.currentUser.gems = (this.currentUser.gems || 0) + gems;
 
-    this.checkSkinUnlocks();
     this._persistCurrent();
   }
 
-  // Cek apakah ada skin yang ter-unlock berdasarkan Total Score / HighScore
-  checkSkinUnlocks() {
-    if (!this.currentUser) return;
+  // Beli Skin dengan Gems (Sesuai Permintaan: Hanya bisa dibuka dengan dibeli!)
+  buySkin(skinId, cost) {
+    if (!this.currentUser) return { success: false, msg: 'Silakan login terlebih dahulu!' };
     if (!this.currentUser.unlockedSkins) this.currentUser.unlockedSkins = ['classic'];
-
-    const sc = Math.max(this.currentUser.totalScore || 0, this.currentUser.highScore || 0);
-
-    // Ninja Monkey (1000 pts)
-    if (sc >= 1000 && !this.currentUser.unlockedSkins.includes('ninja')) {
-      this.currentUser.unlockedSkins.push('ninja');
-    }
-    // King Monkey (3000 pts)
-    if (sc >= 3000 && !this.currentUser.unlockedSkins.includes('king')) {
-      this.currentUser.unlockedSkins.push('king');
-    }
-    // Mecha Monkey (6000 pts)
-    if (sc >= 6000 && !this.currentUser.unlockedSkins.includes('mecha')) {
-      this.currentUser.unlockedSkins.push('mecha');
+    
+    if (this.currentUser.unlockedSkins.includes(skinId)) {
+      this.currentUser.equippedSkin = skinId;
+      this._persistCurrent();
+      return { success: true, msg: 'Kostum sudah dimiliki dan langsung dipakai!' };
     }
 
+    if ((this.currentUser.gems || 0) < cost) {
+      return { success: false, msg: `Gems tidak cukup! Butuh 💎 ${cost} Gems (Kamu punya ${this.currentUser.gems || 0} Gems).` };
+    }
+
+    this.currentUser.gems -= cost;
+    this.currentUser.unlockedSkins.push(skinId);
+    this.currentUser.equippedSkin = skinId;
     this._persistCurrent();
+    return { success: true, msg: '🎉 Kostum berhasil dibeli dan langsung dipakai!' };
   }
 
   equipSkin(skinId) {
     if (!this.currentUser) return false;
+    if (!this.currentUser.unlockedSkins) this.currentUser.unlockedSkins = ['classic'];
     if (this.currentUser.unlockedSkins.includes(skinId)) {
       this.currentUser.equippedSkin = skinId;
       this._persistCurrent();

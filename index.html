@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ Cyber Monkey: Banana Blade — Neo-Pixel Edition</title>
+  <title>🐵 Monkey Banana Shooter — Vibrant Colorful Pixel Edition</title>
+  <!-- WebRTC PeerJS for Online Room Code Multiplayer -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -13,8 +15,8 @@
     }
 
     body {
-      background: radial-gradient(circle at 50% 15%, #181530 0%, #0d0c18 70%, #06050c 100%);
-      color: #e4e3f5;
+      background: radial-gradient(circle at top, #1b5e20 0%, #0d3810 60%, #051a07 100%);
+      color: #f1f8e9;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -22,31 +24,29 @@
       padding: 12px 8px;
     }
 
-    /* ─── CYBERPUNK NEO-PIXEL DESIGN SYSTEM ─── */
+    /* ─── COLORFUL RETRO PIXEL ARCADE THEME ─── */
     :root {
-      --cyber-bg: rgba(18, 17, 36, 0.95);
-      --cyber-border: #2e2b52;
-      --neon-cyan: #00e5ff;
-      --neon-magenta: #ff007f;
-      --neon-gold: #ffd600;
-      --neon-green: #76ff03;
-      --glow-cyan: 0 0 14px rgba(0, 229, 255, 0.5);
-      --glow-magenta: 0 0 14px rgba(255, 0, 127, 0.5);
-      --glow-gold: 0 0 14px rgba(255, 214, 0, 0.5);
+      --jungle-green: #2e7d32;
+      --banana-yellow: #ffd600;
+      --ruby-red: #ff1744;
+      --diamond-cyan: #00e5ff;
+      --hot-pink: #ff007f;
+      --box-bg: rgba(14, 38, 16, 0.95);
+      --box-border: #4caf50;
     }
 
-    .cyber-box {
-      background: var(--cyber-bg);
-      border: 2px solid var(--cyber-border);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    .arcade-box {
+      background: var(--box-bg);
+      border: 3px solid var(--box-border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
       border-radius: 12px;
-      backdrop-filter: blur(8px);
     }
 
-    .cyber-btn {
-      background: linear-gradient(180deg, #242247 0%, #15132d 100%);
-      border: 1.5px solid var(--neon-cyan);
-      color: var(--neon-cyan);
+    .arcade-btn {
+      background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+      border: 2px solid #81c784;
+      box-shadow: 0 4px 12px rgba(46, 125, 50, 0.4);
+      color: #ffffff;
       font-weight: 800;
       font-size: 13px;
       padding: 9px 18px;
@@ -56,42 +56,38 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
+      gap: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      box-shadow: 0 3px 10px rgba(0, 229, 255, 0.2);
+      letter-spacing: 0.6px;
     }
-    .cyber-btn:hover {
-      background: var(--neon-cyan);
-      color: #0d0c18;
-      box-shadow: var(--glow-cyan);
+    .arcade-btn:hover {
+      background: linear-gradient(180deg, #ffd600 0%, #fbc02d 100%);
+      color: #1a2e05;
+      border-color: #fff9c4;
+      box-shadow: 0 6px 18px rgba(255, 214, 0, 0.5);
       transform: translateY(-2px);
     }
-    .cyber-btn:active {
+    .arcade-btn:active {
       transform: translateY(1px);
     }
 
-    .cyber-btn.btn-gold {
-      border-color: var(--neon-gold);
-      color: #0d0c18;
-      background: linear-gradient(180deg, #ffd600 0%, #ffab00 100%);
-      box-shadow: var(--glow-gold);
+    .arcade-btn.btn-gold {
+      background: linear-gradient(180deg, #ffd600 0%, #ff8f00 100%);
+      color: #211500;
+      border-color: #fff8e1;
+      box-shadow: 0 4px 14px rgba(255, 214, 0, 0.5);
     }
-    .cyber-btn.btn-gold:hover {
-      background: linear-gradient(180deg, #ffffff 0%, #ffe082 100%);
-      color: #000;
-      box-shadow: 0 0 20px rgba(255, 214, 0, 0.7);
+    .arcade-btn.btn-cyan {
+      background: linear-gradient(180deg, #00e5ff 0%, #0091ea 100%);
+      color: #002233;
+      border-color: #b3e5fc;
+      box-shadow: 0 4px 14px rgba(0, 229, 255, 0.5);
     }
-
-    .cyber-btn.btn-magenta {
-      border-color: var(--neon-magenta);
+    .arcade-btn.btn-red {
+      background: linear-gradient(180deg, #ff1744 0%, #c2185b 100%);
+      border-color: #ffcdd2;
+      box-shadow: 0 4px 12px rgba(255, 23, 68, 0.4);
       color: #fff;
-      background: linear-gradient(180deg, #ff007f 0%, #c51162 100%);
-      box-shadow: var(--glow-magenta);
-    }
-    .cyber-btn.btn-magenta:hover {
-      background: linear-gradient(180deg, #ff4081 0%, #f50057 100%);
-      box-shadow: 0 0 20px rgba(255, 0, 127, 0.8);
     }
 
     /* ─── WRAPPER ─── */
@@ -103,165 +99,76 @@
       gap: 10px;
     }
 
-    /* ─── TOP STATUS BAR ─── */
+    /* Header Profile Bar */
     .top-user-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 9px 16px;
-      font-size: 12.5px;
-      border-color: #3b3769;
+      font-size: 13px;
     }
     .user-info-tag {
+      color: #a5d6a7;
       display: flex;
       gap: 16px;
-      font-weight: 700;
-      align-items: center;
+      font-weight: bold;
     }
-    .user-info-tag .val {
-      color: var(--neon-cyan);
-      font-family: 'Courier New', monospace;
-    }
+    .user-info-tag span { color: var(--banana-yellow); }
 
     /* ─── MAIN MENU SCREEN ─── */
     #menuScreen {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 15px;
       padding: 24px 18px;
       text-align: center;
-      position: relative;
-      overflow: hidden;
     }
-    #menuScreen::before {
-      content: "";
-      position: absolute;
-      top: -50px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 250px;
-      height: 120px;
-      background: radial-gradient(ellipse, rgba(0, 229, 255, 0.25), transparent 70%);
-      pointer-events: none;
-    }
-
-    .neon-logo {
-      font-size: 26px;
+    .game-logo {
+      font-size: 32px;
       font-weight: 900;
+      color: #ffd600;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 214, 0, 0.6);
       line-height: 1.15;
-      letter-spacing: 1.5px;
-      color: #ffffff;
-      text-transform: uppercase;
-      text-shadow: 0 0 10px var(--neon-cyan), 0 0 25px rgba(0, 229, 255, 0.5);
     }
-    .neon-subtitle {
-      font-size: 11.5px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--neon-magenta);
-      font-weight: 800;
-      text-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
+    .game-subtitle {
+      font-size: 13px;
+      font-weight: bold;
+      color: #b9f6ca;
+      letter-spacing: 1px;
     }
-
     .menu-btn-list {
       display: flex;
       flex-direction: column;
       gap: 9px;
       width: 100%;
       max-width: 320px;
-      z-index: 2;
     }
 
-    /* ─── GAME SCREEN (CANVAS & CYBER HUD) ─── */
+    /* ─── GAME HUD COLORFUL ─── */
     #gameScreen { display: none; }
-
-    /* Top Cyber RPG HUD Frame (Matching Screenshot) */
-    .cyber-hud-top {
+    .game-hud {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 14px;
-      background: rgba(14, 13, 28, 0.98);
-      border: 2px solid var(--cyber-border);
+      padding: 9px 14px;
+      background: rgba(10, 26, 12, 0.98);
+      border: 3px solid #4caf50;
       border-bottom: none;
       border-radius: 12px 12px 0 0;
-      gap: 10px;
+      font-size: 12.5px;
+      font-weight: bold;
       flex-wrap: wrap;
+      gap: 8px;
     }
+    .hud-chunk { display: flex; align-items: center; gap: 5px; }
 
-    .rpg-player-cluster {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .rpg-avatar-frame {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 2px solid var(--neon-cyan);
-      box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
-      background: #1c1b35;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .rpg-bars-col {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .rpg-bar-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-weight: 800;
-      font-family: 'Courier New', monospace;
-    }
-    .rpg-bar-track {
-      width: 110px;
-      height: 8px;
-      background: #121124;
-      border: 1px solid #3c3866;
-      border-radius: 3px;
-      overflow: hidden;
-      position: relative;
-    }
-    .rpg-bar-fill {
-      height: 100%;
-      transition: width 0.15s ease;
-    }
-    .fill-hp {
-      background: linear-gradient(90deg, #ff1744, #ff007f);
-      box-shadow: 0 0 6px #ff007f;
-    }
-    .fill-shield {
-      background: linear-gradient(90deg, #00b0ff, #00e5ff);
-      box-shadow: 0 0 6px #00e5ff;
-    }
-    .fill-ammo {
-      background: linear-gradient(90deg, #ff9100, #ffd600);
-      box-shadow: 0 0 6px #ffd600;
-    }
-
-    .hud-meta-cluster {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 12px;
-      font-weight: 700;
-      font-family: 'Courier New', monospace;
-    }
-
-    .canvas-container {
+    .canvas-box {
       position: relative;
       width: 100%;
-      background: #0f0e1c;
-      border: 2px solid var(--cyber-border);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+      background: #1b5e20;
+      border: 3px solid #4caf50;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
       overflow: hidden;
     }
     canvas {
@@ -271,28 +178,25 @@
       cursor: crosshair;
     }
 
-    .cyber-terminal-banner {
-      background: rgba(14, 13, 28, 0.98);
-      border: 2px solid var(--cyber-border);
+    .controls-banner {
+      background: rgba(10, 26, 12, 0.98);
+      border: 3px solid #4caf50;
       border-top: none;
       border-radius: 0 0 12px 12px;
       padding: 7px 12px;
       font-size: 11px;
-      color: #908eb8;
-      font-family: 'Courier New', monospace;
+      color: #a5d6a7;
       display: flex;
       justify-content: space-between;
-      align-items: center;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 4px;
     }
-    .cyber-terminal-banner strong { color: var(--neon-cyan); }
 
     /* ─── MODAL OVERLAYS ─── */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(8, 7, 16, 0.88);
+      background: rgba(4, 14, 6, 0.9);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -302,7 +206,7 @@
     }
     .modal-content {
       width: 100%;
-      max-width: 500px;
+      max-width: 520px;
       padding: 22px;
       text-align: center;
       display: flex;
@@ -310,7 +214,7 @@
       gap: 13px;
     }
 
-    /* ─── CARDS GRID (UPGRADE & SKINS) ─── */
+    /* Cards Grid */
     .cards-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -318,10 +222,10 @@
       text-align: left;
     }
     .feature-card {
-      background: #181733;
-      border: 1.5px solid #36335f;
+      background: rgba(18, 48, 22, 0.9);
+      border: 2px solid #388e3c;
       padding: 11px;
-      border-radius: 8px;
+      border-radius: 10px;
       display: flex;
       flex-direction: column;
       gap: 5px;
@@ -329,67 +233,54 @@
       transition: all 0.16s ease;
     }
     .feature-card:hover {
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+      border-color: #ffd600;
       transform: translateY(-2px);
     }
-    .card-icon { font-size: 24px; }
-    .card-title { font-weight: 800; color: var(--neon-gold); font-size: 12.5px; }
-    .card-desc { color: #a5a3cb; font-size: 10.5px; line-height: 1.35; }
-    .card-status { font-size: 11px; font-weight: 800; margin-top: auto; }
+    .card-icon { font-size: 26px; }
+    .card-title { font-weight: bold; color: #ffd600; font-size: 12.5px; }
+    .card-desc { color: #c8e6c9; font-size: 10.5px; line-height: 1.35; }
+    .card-status { font-size: 11px; font-weight: bold; margin-top: auto; }
 
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
-    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
-    th { background: #201e3d; color: var(--neon-cyan); font-weight: bold; }
-    tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
-    .rank-gold { color: var(--neon-gold); font-weight: bold; }
-    .rank-silver { color: #e0e0e0; font-weight: bold; }
-    .rank-bronze { color: #ffab40; font-weight: bold; }
-
-    /* Input text */
-    .cyber-input {
-      background: #100f24;
-      border: 1.5px solid var(--neon-cyan);
+    /* Inputs */
+    .arcade-input {
+      background: #0d260f;
+      border: 2px solid #4caf50;
       color: #fff;
       padding: 10px 14px;
       font-size: 14px;
-      font-weight: 700;
-      font-family: 'Courier New', monospace;
+      font-weight: bold;
       border-radius: 8px;
       text-align: center;
       width: 100%;
-      box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.2);
     }
-    .cyber-input:focus {
+    .arcade-input:focus {
       outline: none;
-      box-shadow: 0 0 14px rgba(0, 229, 255, 0.5);
+      border-color: #ffd600;
+      box-shadow: 0 0 10px rgba(255, 214, 0, 0.5);
     }
 
-    /* Option Group */
-    .option-group {
-      display: flex;
-      gap: 7px;
-      justify-content: center;
-      flex-wrap: wrap;
+    /* Room Code Box (Among Us Style) */
+    .room-code-display {
+      background: #091a0c;
+      border: 3px dashed #ffd600;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #ffd600;
+      text-shadow: 0 0 10px rgba(255, 214, 0, 0.6);
+      user-select: all;
     }
-    .option-btn {
-      background: #171630;
-      border: 1.5px solid #36335f;
-      color: #c4c2e6;
-      padding: 7px 13px;
-      font-size: 11.5px;
-      font-weight: 700;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .option-btn.selected {
-      background: #25224a;
-      border-color: var(--neon-cyan);
-      color: var(--neon-cyan);
-      box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
-    }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(76, 175, 80, 0.25); }
+    th { background: #2e7d32; color: #ffd600; font-weight: bold; }
+    tr:nth-child(even) { background: rgba(255, 255, 255, 0.03); }
+    .rank-gold { color: #ffd700; font-weight: bold; }
+    .rank-silver { color: #e0e0e0; font-weight: bold; }
+    .rank-bronze { color: #ffb74d; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -397,94 +288,63 @@
   <div class="wrapper">
 
     <!-- TOP USER STATUS BAR -->
-    <div class="top-user-bar cyber-box">
+    <div class="top-user-bar arcade-box">
       <div class="user-info-tag">
-        <div>OPERATIVE: <span id="userBarName" class="val">GUEST</span></div>
-        <div>BITS: 💎 <span id="userBarGems" class="val">0</span></div>
-        <div>SCORE: 🏆 <span id="userBarScore" class="val">0</span></div>
+        <div>👤 <span id="userBarName">Tamu</span></div>
+        <div>💎 <span id="userBarGems">0</span> Gems</div>
+        <div>🏆 Total: <span id="userBarScore">0</span></div>
       </div>
       <div>
-        <button id="btnSwitchAccount" class="cyber-btn" style="padding: 4px 10px; font-size: 10.5px;">GANTI AKUN</button>
+        <button id="btnSwitchAccount" class="arcade-btn" style="padding: 4px 10px; font-size: 11px;">Ganti Akun</button>
       </div>
     </div>
 
     <!-- ══════════════════════════════════════════════
-         1. MAIN MENU SCREEN (CYBERPUNK RPG)
+         1. MAIN MENU SCREEN (COLORFUL PIXEL)
     ══════════════════════════════════════════════ -->
-    <div id="menuScreen" class="cyber-box">
-      <div style="font-size: 46px; filter: drop-shadow(0 0 12px #00e5ff);">🐒 🍌 ⚡</div>
+    <div id="menuScreen" class="arcade-box">
+      <div style="font-size: 50px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));">🐵 🍌 🌴</div>
       <div>
-        <div class="neon-logo">CYBER MONKEY</div>
-        <div class="neon-subtitle">NEO-PIXEL BANANA BLADE</div>
+        <div class="game-logo">MONKEY BANANA<br>SHOOTER</div>
+        <div class="game-subtitle">✨ VIBRANT COLORFUL PIXEL EDITION ✨</div>
       </div>
-      <div style="font-size: 12px; color: #a19fc9; max-width: 440px; line-height: 1.4;">
-        Bebaskan distrik Cyber Street dari pasukan pemburu & zookeeper mecha! Nyawa 5 Hati + Energy Shield anti-instadeath.
+      <div style="font-size: 12.5px; color: #c8e6c9; max-width: 440px; line-height: 1.4;">
+        Lawan pemburu & zookeeper mecha! Nyawa 5 Hati + Energy Shield anti-mati mendadak. Main Solo atau Online bareng teman pakai Kode Room!
       </div>
 
       <div class="menu-btn-list">
-        <button id="btnMenuStart" class="cyber-btn btn-gold" style="font-size: 14px; padding: 11px;">▶ START MISSION</button>
-        <button id="btnMenuUpgrade" class="cyber-btn">⚡ UPGRADE BANANA BLADE</button>
-        <button id="btnMenuSkins" class="cyber-btn">🐵 AVATAR / CYBER SKINS</button>
-        <button id="btnMenuLeaderboard" class="cyber-btn">🏆 TOP 15 LEADERBOARD</button>
-        <button id="btnMenuProfile" class="cyber-btn">⚙️ PROFIL OPERATIVE</button>
+        <button id="btnMenuSolo" class="arcade-btn btn-gold" style="font-size: 14px; padding: 11px;">▶ MAIN SOLO (1 PEMAIN)</button>
+        <button id="btnMenuOnlineLobby" class="arcade-btn btn-cyan" style="font-size: 14px; padding: 11px;">👥 MULTIPLAYER ONLINE (KODE ROOM)</button>
+        <button id="btnMenuUpgrade" class="arcade-btn">⚡ UPGRADE SENJATA</button>
+        <button id="btnMenuSkins" class="arcade-btn">🐵 TOKO KOSTUM / AVATAR</button>
+        <button id="btnMenuLeaderboard" class="arcade-btn">🏆 TOP 15 LEADERBOARD</button>
+        <button id="btnMenuProfile" class="arcade-btn">⚙️ PROFIL PEMAIN</button>
       </div>
     </div>
 
     <!-- ══════════════════════════════════════════════
-         2. GAME SCREEN (CANVAS & CYBER HUD)
+         2. GAME SCREEN (CANVAS & HUD COLORFUL)
     ══════════════════════════════════════════════ -->
     <div id="gameScreen">
-      <!-- CYBER RPG HUD (Matching Reference Top-Left Style) -->
-      <div class="cyber-hud-top">
-        <div class="rpg-player-cluster">
-          <div class="rpg-avatar-frame" id="hudAvatarIcon">🐵</div>
-          <div class="rpg-bars-col">
-            <!-- HP Bar (5 Hearts with bar) -->
-            <div class="rpg-bar-row">
-              <span style="color:#ff007f;">HP</span>
-              <div class="rpg-bar-track">
-                <div id="hudHpBarFill" class="rpg-bar-fill fill-hp" style="width: 100%;"></div>
-              </div>
-              <span id="hudHpText" style="color:#ff80ab;">5/5</span>
-              <span id="hudHeartsVisual" style="font-size:12px;">❤️❤️❤️❤️❤️</span>
-            </div>
-            <!-- Shield / Stamina Bar -->
-            <div class="rpg-bar-row">
-              <span style="color:#00e5ff;">SHLD</span>
-              <div class="rpg-bar-track">
-                <div id="hudShieldBarFill" class="rpg-bar-fill fill-shield" style="width: 100%;"></div>
-              </div>
-              <span id="hudStaminaText" style="color:#80d8ff;">100%</span>
-            </div>
-            <!-- Ammo Bar -->
-            <div class="rpg-bar-row">
-              <span style="color:#ffd600;">AMMO</span>
-              <div class="rpg-bar-track">
-                <div id="hudAmmoBarFill" class="rpg-bar-fill fill-ammo" style="width: 100%;"></div>
-              </div>
-              <span id="hudAmmoText" style="color:#ffe57f;">12/100</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="hud-meta-cluster">
-          <div>💎 <span id="hudGems" style="color:#00e5ff;">0</span></div>
-          <div>⭐ <span id="hudScore" style="color:#ffd600;">0</span></div>
-          <div>SECTOR <span id="hudWave" style="color:#ff007f;">1</span></div>
-          <button id="btnGameSound" class="cyber-btn" style="padding: 4px 8px; font-size: 10px;">🔊 SFX: ON</button>
-          <button id="btnGameExit" class="cyber-btn btn-magenta" style="padding: 4px 8px; font-size: 10px;">✖ MENU</button>
-        </div>
+      <!-- HUD BAR (5 NYAWA BENAR-BENAR TERPANTAU & HANYA MATI JIKA 0!) -->
+      <div class="game-hud">
+        <div class="hud-chunk">❤️ <span id="hudHeartsVisual" style="font-size:14px;">❤️❤️❤️❤️❤️</span> <span id="hudLivesCount" style="color:#ffeb3b; font-size:12px;">(5/5)</span></div>
+        <div class="hud-chunk">🍌 Ammo: <span id="hudAmmoMag" style="color:#ffd600;">12</span>/<span id="hudAmmoStock">100</span> <span style="font-size:10px; color:#a5d6a7;">[R]</span></div>
+        <div class="hud-chunk">⚡ Roll: <span id="hudStamina" style="color:#00e5ff;">100%</span> <span style="font-size:10px; color:#a5d6a7;">[SPASI]</span></div>
+        <div class="hud-chunk">💎 <span id="hudGems" style="color:#00e5ff;">0</span></div>
+        <div class="hud-chunk">⭐ <span id="hudScore" style="color:#ffd600;">0</span></div>
+        <div class="hud-chunk">🌴 Lv.<span id="hudWave" style="color:#ff1744;">1</span></div>
+        <button id="btnGameSound" class="arcade-btn" style="padding: 4px 8px; font-size: 10px;">🔊 SFX: ON</button>
+        <button id="btnGameExit" class="arcade-btn btn-red" style="padding: 4px 8px; font-size: 10px;">✖ MENU</button>
       </div>
 
-      <!-- Canvas -->
-      <div class="canvas-container">
+      <div class="canvas-box">
         <canvas id="gameCanvas" width="640" height="460"></canvas>
       </div>
 
-      <!-- Cyber Terminal Banner -->
-      <div class="cyber-terminal-banner">
-        <div><strong>P1</strong>: [WASD] Gerak | [MOUSE] Aim & Klik Kiri Tembak | [SPASI] Cyber Dash | [R] Reload</div>
-        <div id="bannerP2Hint" style="display:none; color:var(--neon-cyan);"><strong>P2</strong>: [Panah] Gerak | [Enter/K] Tembak | [Shift/M] Dash</div>
+      <div class="controls-banner">
+        <div><strong>P1</strong>: [WASD] Gerak | [MOUSE] Bidik & [KLIK KIRI] Tembak | [SPASI] Dodge Roll | [R] Isi Peluru</div>
+        <div id="bannerMultiplayerHint" style="display:none; color:#ffd600;"><strong>P2 (Teman Online)</strong>: Terhubung via WebRTC DataChannel</div>
       </div>
     </div>
 
@@ -492,55 +352,94 @@
 
 
   <!-- ══════════════════════════════════════════════
+       MODAL: MULTIPLAYER ONLINE (AMONG US ROOM CODE)
+  ══════════════════════════════════════════════ -->
+  <div id="modalMultiplayer" class="modal-overlay" style="display:none;">
+    <div class="modal-content arcade-box" style="max-width:540px;">
+      <h2 style="color:#ffd600; font-size:19px; font-weight:900;">👥 MULTIPLAYER ONLINE (KODE ROOM)</h2>
+      <p style="font-size:12.5px; color:#c8e6c9;">
+        Main bersama teman secara real-time dari komputer atau HP yang berbeda menggunakan sistem kode room!
+      </p>
+
+      <!-- TAB PILIHAN: BUAT ROOM VS GABUNG ROOM -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
+        <!-- Card Host -->
+        <div class="arcade-box" style="padding:14px; background:rgba(10,30,12,0.9); display:flex; flex-direction:column; gap:8px;">
+          <h3 style="color:#00e5ff; font-size:14px;">1. BUAT ROOM (HOST)</h3>
+          <p style="font-size:11px; color:#a5d6a7;">Buat kode room dan bagikan ke temanmu.</p>
+          <button id="btnCreateRoom" class="arcade-btn btn-cyan" style="width:100%;">🔑 BUAT KODE ROOM</button>
+        </div>
+
+        <!-- Card Join -->
+        <div class="arcade-box" style="padding:14px; background:rgba(10,30,12,0.9); display:flex; flex-direction:column; gap:8px;">
+          <h3 style="color:#ffd600; font-size:14px;">2. GABUNG ROOM (JOIN)</h3>
+          <input type="text" id="inputJoinRoomCode" class="arcade-input" placeholder="Ketik Kode Room..." maxlength="6" style="text-transform:uppercase;">
+          <button id="btnJoinRoom" class="arcade-btn btn-gold" style="width:100%;">🚀 GABUNG SEKARANG</button>
+        </div>
+      </div>
+
+      <!-- AREA STATUS KODE ROOM (Jika sedang host) -->
+      <div id="roomStatusArea" style="display:none; flex-direction:column; gap:8px; margin-top:6px;">
+        <div style="font-size:12px; color:#c8e6c9;">KODE ROOM KAMU:</div>
+        <div id="displayRoomCode" class="room-code-display">KERA7</div>
+        <div id="networkStatusText" style="font-size:12px; color:#ffd600; font-weight:bold;">
+          ⏳ Menunggu teman memasukkan kode room di atas...
+        </div>
+        <button id="btnHostStartGame" class="arcade-btn btn-gold" style="display:none; font-size:14px; padding:11px;">
+          ▶ TEMAN SUDAH BERGABUNG! MULAI SEKARANG
+        </button>
+      </div>
+
+      <!-- Mode Duo Local 1 Keyboard (Alternatif) -->
+      <div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top:10px; margin-top:4px;">
+        <button id="btnModeLocalDuo" class="arcade-btn" style="width:100%; font-size:11.5px;">
+          🎮 Atau Main Berdua 1 Keyboard (P1: WASD | P2: Panah)
+        </button>
+      </div>
+
+      <button id="btnCloseMultiplayer" class="arcade-btn btn-red" style="margin-top:6px;">TUTUP</button>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
        MODAL 1: PERTANYAAN LOGIN SEBELUM MAIN
   ══════════════════════════════════════════════ -->
   <div id="modalLoginPrompt" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box">
-      <div style="font-size: 42px;">⚡ 🐒 🏙️</div>
-      <h2 style="color:var(--neon-cyan); font-size:19px; font-weight:900; letter-spacing:1px;">SELAMAT DATANG OPERATIVE!</h2>
-      <p style="font-size:12.5px; color:#c4c2e6; line-height:1.5;">
-        Simpan rekor skor, gems, upgrade, dan avatar permanen di cloud database Supabase, atau main sebagai Tamu?
+    <div class="modal-content arcade-box">
+      <div style="font-size: 44px;">🐵 🍌 🌴</div>
+      <h2 style="color:#ffd600; font-size:20px; font-weight:900;">SELAMAT DATANG DI HUTAN SAKTI!</h2>
+      <p style="font-size:12.5px; color:#c8e6c9; line-height:1.5;">
+        Simpan skor, gems, upgrade, dan kostum permanen di cloud Supabase, atau main sebagai Tamu?
       </p>
 
-      <div style="display:flex; flex-direction:column; gap:9px; margin-top:6px;">
-        <input type="text" id="loginUsernameInput" class="cyber-input" placeholder="Callsign Operative..." maxlength="14" value="CyberMonkey">
-        <button id="btnLoginConfirm" class="cyber-btn btn-gold">🔑 LOGIN / BUAT PROFIL</button>
-        <button id="btnPlayGuest" class="cyber-btn">👤 MAIN SEBAGAI TAMU</button>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px;">
+        <input type="text" id="loginUsernameInput" class="arcade-input" placeholder="Ketik Nama Monyetmu..." maxlength="14" value="MonyetSakti">
+        <button id="btnLoginConfirm" class="arcade-btn btn-gold">🔑 LOGIN / BUAT AKUN</button>
+        <button id="btnPlayGuest" class="arcade-btn">👤 MAIN SEBAGAI TAMU</button>
       </div>
     </div>
   </div>
 
 
   <!-- ══════════════════════════════════════════════
-       MODAL 2: SETUP GAME & STORY
+       MODAL 2: TOKO KOSTUM / AVATAR (HANYA BISA DI-UNLOCK DENGAN DIBELI)
   ══════════════════════════════════════════════ -->
-  <div id="modalStartStory" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box">
-      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">🎮 BRIEFING MISI CYBER STREET</h2>
+  <div id="modalSkins" class="modal-overlay" style="display:none;">
+    <div class="modal-content arcade-box" style="max-width:540px;">
+      <h2 style="color:#ffd600; font-size:19px; font-weight:900;">🐵 TOKO KOSTUM / AVATAR MONYET</h2>
+      <div style="font-size:13px; color:#c8e6c9;">
+        Saldo Gems Kamu: 💎 <span id="skinsModalGems" style="color:#00e5ff; font-weight:bold;">0</span>
+      </div>
+      <p style="font-size:11.5px; color:#a5d6a7;">
+        *Kostum hanya bisa dibuka jika dibeli dengan Gems dari drop musuh & boss!
+      </p>
 
-      <!-- Mode Solo vs Duo -->
-      <div style="text-align:left; font-size:12px;">
-        <label style="color:var(--neon-gold); font-weight:bold;">1. MODE OPERASI:</label>
-        <div class="option-group" style="margin-top:6px;">
-          <button id="btnModeSolo" class="option-btn selected">👤 SOLO OPERATIVE</button>
-          <button id="btnModeDuo" class="option-btn">👥 DUO CO-OP (2 Pemain)</button>
-        </div>
+      <div class="cards-grid" id="skinsCardsContainer">
+        <!-- Rendered by JS -->
       </div>
 
-      <!-- Story Banner Bergambar -->
-      <div class="cyber-box" style="background:#131228; padding:12px; font-size:11.5px; color:#d2d0ea; text-align:left; line-height:1.45; border-color:#383563;">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-          <span style="font-size:22px;">📜</span>
-          <strong style="color:var(--neon-cyan);">CYBER STREET SECTOR INVASION</strong>
-        </div>
-        Sektor Wefco Mart & Soul Link diblokade oleh sindikat zookeeper pemburu bersenjata laser.
-        Manfaatkan Plasma Banana Blaster, aktifkan Cyber Dash dengan [SPASI], dan kumpulkan Bits 💎 untuk upgrade!
-      </div>
-
-      <div style="display:flex; gap:9px; justify-content:center;">
-        <button id="btnLaunchGame" class="cyber-btn btn-gold" style="flex:1;">▶ LAUNCH MISI!</button>
-        <button id="btnCloseStory" class="cyber-btn btn-magenta">BATAL</button>
-      </div>
+      <button id="btnCloseSkins" class="arcade-btn btn-red">TUTUP</button>
     </div>
   </div>
 
@@ -549,111 +448,94 @@
        MODAL 3: WORKSHOP UPGRADE SENJATA
   ══════════════════════════════════════════════ -->
   <div id="modalUpgrade" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box" style="max-width:540px;">
-      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">⚡ CYBER WEAPON FORGE</h2>
-      <div style="font-size:12.5px; color:#c4c2e6;">Saldo Bits: 💎 <span id="upgradeModalGems" style="color:var(--neon-cyan); font-weight:bold;">0</span></div>
+    <div class="modal-content arcade-box" style="max-width:540px;">
+      <h2 style="color:#ffd600; font-size:19px; font-weight:900;">⚡ BENGKEL SENJATA PISANG SAKTI</h2>
+      <div style="font-size:13px; color:#c8e6c9;">Saldo Gems: 💎 <span id="upgradeModalGems" style="color:#00e5ff; font-weight:bold;">0</span></div>
 
       <div class="cards-grid" id="upgradeCardsContainer">
         <!-- Rendered by JS -->
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:9px; margin-top:4px;">
-        <button id="btnDoUpgrade" class="cyber-btn btn-gold" style="flex:1;">UPGRADE SEKARANG</button>
-        <button id="btnCloseUpgrade" class="cyber-btn btn-magenta">TUTUP</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:4px;">
+        <button id="btnDoUpgrade" class="arcade-btn btn-gold" style="flex:1;">UPGRADE SEKARANG</button>
+        <button id="btnCloseUpgrade" class="arcade-btn btn-red">TUTUP</button>
       </div>
     </div>
   </div>
 
 
   <!-- ══════════════════════════════════════════════
-       MODAL 4: LEMARI KOLEKSI SKINS
-  ══════════════════════════════════════════════ -->
-  <div id="modalSkins" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box" style="max-width:520px;">
-      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">🐵 CYBER AVATAR HANGAR</h2>
-      <div style="font-size:12.5px; color:#c4c2e6;">Total Skor Kamu: 🏆 <span id="skinsModalScore" style="color:var(--neon-gold); font-weight:bold;">0</span></div>
-
-      <div class="cards-grid" id="skinsCardsContainer">
-        <!-- Rendered by JS -->
-      </div>
-
-      <button id="btnCloseSkins" class="cyber-btn btn-magenta">TUTUP</button>
-    </div>
-  </div>
-
-
-  <!-- ══════════════════════════════════════════════
-       MODAL 5: LEADERBOARD SUPABASE
+       MODAL 4: LEADERBOARD SUPABASE
   ══════════════════════════════════════════════ -->
   <div id="modalLeaderboard" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box" style="max-width:540px;">
+    <div class="modal-content arcade-box" style="max-width:540px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">🏆 GLOBAL SUPABASE LEADERBOARD</h2>
-        <button id="btnRefreshLeaderboard" class="cyber-btn" style="padding:5px 10px; font-size:11px;">🔄 REFRESH</button>
+        <h2 style="color:#ffd600; font-size:18px; font-weight:900;">🏆 TOP 15 LEADERBOARD SUPABASE</h2>
+        <button id="btnRefreshLeaderboard" class="arcade-btn" style="padding:5px 10px; font-size:11px;">🔄 Refresh</button>
       </div>
 
-      <div style="max-height:270px; overflow-y:auto; border:1.5px solid var(--cyber-border); border-radius:8px;">
+      <div style="max-height:270px; overflow-y:auto; border:2px solid #388e3c; border-radius:8px;">
         <table>
           <thead>
             <tr>
               <th>Rank</th>
-              <th>Operative</th>
-              <th>Score</th>
-              <th>Sector</th>
-              <th>Accuracy</th>
+              <th>Nama</th>
+              <th>Skor</th>
+              <th>Level</th>
+              <th>Akurasi</th>
             </tr>
           </thead>
           <tbody id="leaderboardTbody"></tbody>
         </table>
       </div>
 
-      <button id="btnCloseLeaderboard" class="cyber-btn btn-magenta">TUTUP</button>
+      <button id="btnCloseLeaderboard" class="arcade-btn btn-red">TUTUP</button>
     </div>
   </div>
 
 
   <!-- ══════════════════════════════════════════════
-       MODAL 6: PROFIL AKUN
+       MODAL 5: PROFIL AKUN
   ══════════════════════════════════════════════ -->
   <div id="modalProfile" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box">
-      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">⚙️ OPERATIVE DOSSIER</h2>
-      <div class="cyber-box" style="background:#131228; padding:15px; font-size:12.5px; text-align:left; line-height:1.75; border-color:#383563;">
-        <div>👤 Callsign: <strong id="profName" style="color:var(--neon-gold);">-</strong></div>
-        <div>💎 Total Bits: <strong id="profGems" style="color:var(--neon-cyan);">0</strong></div>
-        <div>🏆 Total Score: <strong id="profTotalScore" style="color:var(--neon-gold);">0</strong></div>
-        <div>⭐ Record High: <strong id="profHighScore" style="color:var(--neon-gold);">0</strong></div>
-        <div>🍌 Blaster Tier: <strong id="profWeapon" style="color:var(--neon-cyan);">Tier 1</strong></div>
-        <div>🐵 Active Chassis: <strong id="profSkin" style="color:var(--neon-magenta);">Cyber Classic</strong></div>
+    <div class="modal-content arcade-box">
+      <h2 style="color:#ffd600; font-size:18px; font-weight:900;">⚙️ PROFIL PEMAIN</h2>
+      <div class="arcade-box" style="background:#0e2812; padding:15px; font-size:13px; text-align:left; line-height:1.75; border-color:#388e3c;">
+        <div>👤 Nama Monyet: <strong id="profName" style="color:#ffd600;">-</strong></div>
+        <div>💎 Total Gems: <strong id="profGems" style="color:#00e5ff;">0</strong></div>
+        <div>🏆 Total Poin: <strong id="profTotalScore" style="color:#ffd600;">0</strong></div>
+        <div>⭐ High Score: <strong id="profHighScore" style="color:#ffd600;">0</strong></div>
+        <div>🍌 Tier Blaster: <strong id="profWeapon" style="color:#81c784;">Tier 1</strong></div>
+        <div>🐵 Kostum Aktif: <strong id="profSkin" style="color:#ff4081;">Classic Chimp</strong></div>
       </div>
 
-      <div style="display:flex; gap:9px;">
-        <button id="btnLogout" class="cyber-btn btn-magenta" style="flex:1;">LOGOUT</button>
-        <button id="btnCloseProfile" class="cyber-btn" style="flex:1;">TUTUP</button>
+      <div style="display:flex; gap:10px;">
+        <button id="btnLogout" class="arcade-btn btn-red" style="flex:1;">LOGOUT</button>
+        <button id="btnCloseProfile" class="arcade-btn" style="flex:1;">TUTUP</button>
       </div>
     </div>
   </div>
 
 
   <!-- ══════════════════════════════════════════════
-       MODAL 7: GAME OVER
+       MODAL 6: GAME OVER
   ══════════════════════════════════════════════ -->
   <div id="modalGameOver" class="modal-overlay" style="display:none;">
-    <div class="modal-content cyber-box">
-      <div style="font-size:38px;">💥 ⚡</div>
-      <h2 style="color:var(--neon-magenta); font-size:22px; font-weight:900; letter-spacing:1px;">MISSION FAILED</h2>
-      <p style="font-size:12px; color:#c4c2e6;">Semua 5 Nyawa telah habis di medan tempur.</p>
+    <div class="modal-content arcade-box">
+      <div style="font-size:38px;">💥 🍌</div>
+      <h2 style="color:#ff1744; font-size:24px; font-weight:900;">GAME OVER!</h2>
+      <p style="font-size:12px; color:#c8e6c9;">Semua 5 Hati telah habis di medan tempur.</p>
 
-      <div class="cyber-box" style="background:#131228; padding:13px; font-size:13px; line-height:1.65; border-color:#383563;">
-        <div>Final Score: <strong id="goScore" style="color:var(--neon-gold);">0</strong></div>
-        <div>Sector Reached: <strong id="goWave" style="color:var(--neon-cyan);">1</strong></div>
-        <div>Accuracy: <strong id="goAcc" style="color:var(--neon-green);">0%</strong></div>
-        <div>Bits Salvaged: <strong id="goGems" style="color:var(--neon-cyan);">0</strong> 💎</div>
+      <div class="arcade-box" style="background:#0e2812; padding:14px; font-size:13.5px; line-height:1.7; border-color:#388e3c;">
+        <div>Skor Akhir: <strong id="goScore" style="color:#ffd600;">0</strong></div>
+        <div>Level Tercapai: <strong id="goWave" style="color:#ffd600;">1</strong></div>
+        <div>Akurasi Tembakan: <strong id="goAcc" style="color:#76ff03;">0%</strong></div>
+        <div>Gems Didapat: <strong id="goGems" style="color:#00e5ff;">0</strong> 💎</div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:9px;">
-        <button id="btnSaveAndExit" class="cyber-btn btn-gold">💾 SIMPAN HASIL KE SUPABASE & EXIT</button>
-        <button id="btnPlayAgain" class="cyber-btn">🔄 REDEPLOY SEKARANG</button>
+        <button id="btnSaveAndExit" class="arcade-btn btn-gold">💾 SIMPAN HASIL KE SUPABASE & MENU</button>
+        <button id="btnPlayAgain" class="arcade-btn">🔄 MAIN LAGI LANGSUNG</button>
       </div>
     </div>
   </div>
@@ -670,7 +552,12 @@
   <script>
     let currentGame = null;
     let hudLoopInterval = null;
-    let selectedModeDuo = false;
+
+    // Multiplayer State
+    let isMultiplayerOnline = false;
+    let isHostMode = true;
+    let currentPeer = null;
+    let activeConnection = null;
 
     // ── INITIAL LOAD ──
     window.addEventListener('DOMContentLoaded', () => {
@@ -683,22 +570,22 @@
     });
 
     function updateUserBar() {
-      const u = window.accountManager.getCurrentUser() || { username: 'GUEST', gems: 0, totalScore: 0 };
-      document.getElementById('userBarName').textContent = u.username.toUpperCase();
+      const u = window.accountManager.getCurrentUser() || { username: 'Tamu', gems: 0, totalScore: 0 };
+      document.getElementById('userBarName').textContent = u.username;
       document.getElementById('userBarGems').textContent = (u.gems || 0).toLocaleString();
       document.getElementById('userBarScore').textContent = (u.totalScore || 0).toLocaleString();
     }
 
     // ── LOGIN HANDLERS ──
     document.getElementById('btnLoginConfirm').addEventListener('click', () => {
-      const uname = document.getElementById('loginUsernameInput').value.trim() || 'CyberMonkey';
+      const uname = document.getElementById('loginUsernameInput').value.trim() || 'MonyetSakti';
       window.accountManager.login(uname, false);
       document.getElementById('modalLoginPrompt').style.display = 'none';
       updateUserBar();
     });
 
     document.getElementById('btnPlayGuest').addEventListener('click', () => {
-      window.accountManager.login('Guest_Unit', true);
+      window.accountManager.login('Tamu Rimba', true);
       document.getElementById('modalLoginPrompt').style.display = 'none';
       updateUserBar();
     });
@@ -707,38 +594,111 @@
       document.getElementById('modalLoginPrompt').style.display = 'flex';
     });
 
-    // ── MENU BUTTONS ──
-    document.getElementById('btnMenuStart').addEventListener('click', () => {
-      document.getElementById('modalStartStory').style.display = 'flex';
+    // ── MAIN SOLO ──
+    document.getElementById('btnMenuSolo').addEventListener('click', () => {
+      isMultiplayerOnline = false;
+      document.getElementById('bannerMultiplayerHint').style.display = 'none';
+      startActiveGame({ isDuo: false, isOnline: false });
     });
 
-    document.getElementById('btnCloseStory').addEventListener('click', () => {
-      document.getElementById('modalStartStory').style.display = 'none';
+    // ── MULTIPLAYER MODAL ──
+    document.getElementById('btnMenuOnlineLobby').addEventListener('click', () => {
+      document.getElementById('modalMultiplayer').style.display = 'flex';
+      document.getElementById('roomStatusArea').style.display = 'none';
+    });
+    document.getElementById('btnCloseMultiplayer').addEventListener('click', () => {
+      document.getElementById('modalMultiplayer').style.display = 'none';
+      if (currentPeer) {
+        currentPeer.destroy();
+        currentPeer = null;
+      }
     });
 
-    // Mode Selector
-    const btnModeSolo = document.getElementById('btnModeSolo');
-    const btnModeDuo = document.getElementById('btnModeDuo');
-    btnModeSolo.addEventListener('click', () => {
-      selectedModeDuo = false;
-      btnModeSolo.classList.add('selected');
-      btnModeDuo.classList.remove('selected');
-      document.getElementById('bannerP2Hint').style.display = 'none';
-    });
-    btnModeDuo.addEventListener('click', () => {
-      selectedModeDuo = true;
-      btnModeDuo.classList.add('selected');
-      btnModeSolo.classList.remove('selected');
-      document.getElementById('bannerP2Hint').style.display = 'block';
+    // 1. HOST: BUAT ROOM CODE
+    document.getElementById('btnCreateRoom').addEventListener('click', () => {
+      const randomCode = 'MK' + Math.floor(1000 + Math.random() * 9000); // contoh: MK5821
+      document.getElementById('displayRoomCode').textContent = randomCode;
+      document.getElementById('roomStatusArea').style.display = 'flex';
+      document.getElementById('networkStatusText').textContent = '⏳ Membuka jaringan WebRTC...';
+      document.getElementById('btnHostStartGame').style.display = 'none';
+
+      if (currentPeer) currentPeer.destroy();
+
+      currentPeer = new Peer('mbs-room-' + randomCode);
+
+      currentPeer.on('open', (id) => {
+        document.getElementById('networkStatusText').innerHTML = '🟢 Room Online! Menunggu teman memasukkan kode <strong>' + randomCode + '</strong>...';
+      });
+
+      currentPeer.on('connection', (conn) => {
+        activeConnection = conn;
+        isMultiplayerOnline = true;
+        isHostMode = true;
+
+        conn.on('open', () => {
+          document.getElementById('networkStatusText').innerHTML = '🎉 <strong>Teman Berhasil Terhubung!</strong> Klik tombol di bawah untuk mulai main bersama!';
+          document.getElementById('btnHostStartGame').style.display = 'block';
+        });
+      });
+
+      currentPeer.on('error', (err) => {
+        document.getElementById('networkStatusText').textContent = '⚠️ Info jaringan: ' + err.type;
+      });
     });
 
-    // ── LAUNCH GAME DARI MODAL STORY ──
-    document.getElementById('btnLaunchGame').addEventListener('click', () => {
-      document.getElementById('modalStartStory').style.display = 'none';
-      startActiveGame();
+    // HOST: MULAI MAIN SETELAH GUEST MASUK
+    document.getElementById('btnHostStartGame').addEventListener('click', () => {
+      document.getElementById('modalMultiplayer').style.display = 'none';
+      document.getElementById('bannerMultiplayerHint').style.display = 'block';
+      startActiveGame({ isDuo: true, isOnline: true, isHost: true, networkConn: activeConnection });
     });
 
-    function startActiveGame() {
+    // 2. GUEST: GABUNG KODE ROOM
+    document.getElementById('btnJoinRoom').addEventListener('click', () => {
+      const code = document.getElementById('inputJoinRoomCode').value.trim().toUpperCase();
+      if (!code) {
+        alert('Silakan ketik Kode Room dari Host!');
+        return;
+      }
+
+      document.getElementById('roomStatusArea').style.display = 'flex';
+      document.getElementById('displayRoomCode').textContent = code;
+      document.getElementById('networkStatusText').textContent = '⏳ Menghubungkan ke Room ' + code + '...';
+
+      if (currentPeer) currentPeer.destroy();
+      currentPeer = new Peer();
+
+      currentPeer.on('open', () => {
+        const conn = currentPeer.connect('mbs-room-' + code);
+        activeConnection = conn;
+
+        conn.on('open', () => {
+          isMultiplayerOnline = true;
+          isHostMode = false;
+          document.getElementById('networkStatusText').textContent = '✅ Terhubung ke Host! Meluncur ke game...';
+          setTimeout(() => {
+            document.getElementById('modalMultiplayer').style.display = 'none';
+            document.getElementById('bannerMultiplayerHint').style.display = 'block';
+            startActiveGame({ isDuo: true, isOnline: true, isHost: false, networkConn: activeConnection });
+          }, 800);
+        });
+
+        conn.on('error', (err) => {
+          document.getElementById('networkStatusText').textContent = '❌ Gagal terhubung: Pastikan kode room benar & Host sedang online.';
+        });
+      });
+    });
+
+    // 3. DUO LOCAL 1 KEYBOARD
+    document.getElementById('btnModeLocalDuo').addEventListener('click', () => {
+      document.getElementById('modalMultiplayer').style.display = 'none';
+      document.getElementById('bannerMultiplayerHint').style.display = 'block';
+      document.getElementById('bannerMultiplayerHint').textContent = 'P2 (Local): [Panah] Gerak | [Enter/K] Tembak | [Shift/M] Dodge Roll';
+      startActiveGame({ isDuo: true, isOnline: false });
+    });
+
+    // ── LAUNCH ENGINE ──
+    function startActiveGame(opts = {}) {
       document.getElementById('menuScreen').style.display = 'none';
       document.getElementById('gameScreen').style.display = 'block';
 
@@ -752,7 +712,10 @@
       }
 
       currentGame = new MonkeyBananaShooter('gameCanvas', {
-        isDuo: selectedModeDuo,
+        isDuo: opts.isDuo || false,
+        isOnline: opts.isOnline || false,
+        isHost: opts.isHost !== false,
+        networkConn: opts.networkConn || null,
         skinP1: skin,
         weaponLevel: weaponLv,
         playerAccount: user
@@ -761,7 +724,7 @@
       startHudLoop();
     }
 
-    // ── HUD LOOP (5 NYAWA BENAR & AKURAT) ──
+    // ── HUD LOOP (5 NYAWA BENAR & HANYA MATI JIKA 0) ──
     function startHudLoop() {
       if (hudLoopInterval) clearInterval(hudLoopInterval);
       hudLoopInterval = setInterval(() => {
@@ -770,21 +733,25 @@
         // P1 Lives (5 Hati Penuh!)
         const p1L = currentGame.p1 ? currentGame.p1.lives : 0;
         const maxL1 = currentGame.p1 ? currentGame.p1.maxLives : 5;
-        const hpPct = Math.max(0, Math.min(100, (p1L / maxL1) * 100));
+        let heartsStr = '❤️'.repeat(Math.max(0, p1L)) + '🖤'.repeat(Math.max(0, maxL1 - p1L));
 
-        document.getElementById('hudHpBarFill').style.width = hpPct + '%';
-        document.getElementById('hudHpText').textContent = `${Math.max(0, p1L)}/${maxL1}`;
-        document.getElementById('hudHeartsVisual').textContent = '❤️'.repeat(Math.max(0, p1L)) + '🖤'.repeat(Math.max(0, maxL1 - p1L));
+        if (currentGame.isDuo && currentGame.p2) {
+          const p2L = currentGame.p2.lives;
+          const maxL2 = currentGame.p2.maxLives;
+          heartsStr += ' | P2: ' + ('💙'.repeat(Math.max(0, p2L)) + '🖤'.repeat(Math.max(0, maxL2 - p2L)));
+        }
+
+        document.getElementById('hudHeartsVisual').textContent = heartsStr;
+        document.getElementById('hudLivesCount').textContent = `(${Math.max(0, p1L)}/${maxL1})`;
 
         // Ammo & Stamina
-        if (currentGame.p1) {
-          const ammoPct = (currentGame.p1.ammoMag / currentGame.p1.maxAmmoMag) * 100;
-          document.getElementById('hudAmmoBarFill').style.width = ammoPct + '%';
-          document.getElementById('hudAmmoText').textContent = `${currentGame.p1.ammoMag}/${currentGame.p1.ammoStock}`;
+        const activeP = (currentGame.isOnline && !currentGame.isHost && currentGame.p2) ? currentGame.p2 : currentGame.p1;
+        if (activeP) {
+          document.getElementById('hudAmmoMag').textContent = activeP.ammoMag;
+          document.getElementById('hudAmmoStock').textContent = activeP.ammoStock;
 
-          const stamPct = Math.round((currentGame.p1.stamina / currentGame.p1.maxStamina) * 100);
-          document.getElementById('hudShieldBarFill').style.width = stamPct + '%';
-          document.getElementById('hudStaminaText').textContent = stamPct + '%';
+          const stamPct = Math.round((activeP.stamina / activeP.maxStamina) * 100);
+          document.getElementById('hudStamina').textContent = stamPct + '%';
         }
 
         document.getElementById('hudGems').textContent = currentGame.gemsCollected;
@@ -816,7 +783,7 @@
       }
     });
 
-    // ── GAME OVER CALLBACK ──
+    // ── GAME OVER HANDLER ──
     window.onGameOver = function(score, wave, shotsFired, shotsHit, gems) {
       if (hudLoopInterval) clearInterval(hudLoopInterval);
 
@@ -828,22 +795,20 @@
 
       document.getElementById('modalGameOver').style.display = 'flex';
 
-      // Handler Simpan
       const btnSave = document.getElementById('btnSaveAndExit');
       btnSave.onclick = async () => {
         btnSave.disabled = true;
         btnSave.textContent = '⏳ Menyimpan ke Supabase...';
 
         const user = window.accountManager.getCurrentUser();
-        const uname = user ? user.username : 'Operative';
+        const uname = user ? user.username : 'MonyetSakti';
 
-        // Simpan ke Supabase & LocalStorage
         await window.leaderboardManager.saveScore(uname, score, wave, acc);
         window.accountManager.addGems(gems);
         window.accountManager.addScore(score);
 
         btnSave.disabled = false;
-        btnSave.textContent = '💾 SIMPAN HASIL KE SUPABASE & EXIT';
+        btnSave.textContent = '💾 SIMPAN HASIL KE SUPABASE & MENU';
         document.getElementById('modalGameOver').style.display = 'none';
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('menuScreen').style.display = 'flex';
@@ -855,11 +820,73 @@
         window.accountManager.addGems(gems);
         window.accountManager.addScore(score);
         document.getElementById('modalGameOver').style.display = 'none';
-        startActiveGame();
+        startActiveGame({ isDuo: false, isOnline: false });
       };
     };
 
-    // ── UPGRADE WORKSHOP ──
+    // ── TOKO KOSTUM / AVATAR (HARGA GEMS & HANYA UNLOCK JIKA DIBELI!) ──
+    document.getElementById('btnMenuSkins').addEventListener('click', () => {
+      renderSkinsModal();
+      document.getElementById('modalSkins').style.display = 'flex';
+    });
+    document.getElementById('btnCloseSkins').addEventListener('click', () => {
+      document.getElementById('modalSkins').style.display = 'none';
+      updateUserBar();
+    });
+
+    function renderSkinsModal() {
+      const user = window.accountManager.getCurrentUser() || { gems: 0, equippedSkin: 'classic', unlockedSkins: ['classic'] };
+      document.getElementById('skinsModalGems').textContent = (user.gems || 0).toLocaleString();
+
+      const skins = [
+        { id: 'classic', name: 'Classic Chimp', icon: '🐵', cost: 0, desc: 'Monyet lincah dengan bandana merah.' },
+        { id: 'ninja', name: 'Shadow Shinobi', icon: '🥷', cost: 50, desc: 'Ninja kegelapan bersyal pink neon.' },
+        { id: 'mecha', name: 'Cyber Mecha Android', icon: '🤖', cost: 120, desc: 'Baju zirah titanium berpelindung laser.' },
+        { id: 'king', name: 'Golden King Kong', icon: '👑', cost: 250, desc: 'Monyet emas murni bermahkota permata ruby!' },
+        { id: 'cosmic', name: 'Galaxy Cosmic Ape', icon: '🌌', cost: 500, desc: 'Aura kosmik luar angkasa bertabur bintang.' }
+      ];
+
+      const cont = document.getElementById('skinsCardsContainer');
+      cont.innerHTML = '';
+      skins.forEach(s => {
+        const isUnlocked = (user.unlockedSkins || ['classic']).includes(s.id);
+        const isEquipped = (user.equippedSkin || 'classic') === s.id;
+        const canBuy = (user.gems || 0) >= s.cost;
+
+        const card = document.createElement('div');
+        card.className = 'feature-card';
+        card.innerHTML = `
+          <div class="card-icon">${s.icon}</div>
+          <div class="card-title">${s.name}</div>
+          <div class="card-desc">${s.desc}</div>
+          <div style="margin-top:auto; padding-top:6px;">
+            ${isEquipped ?
+              '<div class="card-status" style="color:#00e5ff;">✔ SEDANG DIPAKAI</div>' :
+              isUnlocked ?
+              `<button class="arcade-btn" style="width:100%; padding:5px 8px; font-size:11px;" onclick="window.equipSkinDirect('${s.id}')">PAKAI KOSTUM</button>` :
+              `<button class="arcade-btn btn-gold" style="width:100%; padding:5px 8px; font-size:11px;" ${!canBuy ? 'disabled style="opacity:0.6;"' : ''} onclick="window.buySkinDirect('${s.id}', ${s.cost})">💎 BELI (${s.cost} GEMS)</button>`
+            }
+          </div>
+        `;
+        cont.appendChild(card);
+      });
+    }
+
+    window.buySkinDirect = function(skinId, cost) {
+      const res = window.accountManager.buySkin(skinId, cost);
+      alert(res.msg);
+      renderSkinsModal();
+      updateUserBar();
+    };
+
+    window.equipSkinDirect = function(skinId) {
+      if (window.accountManager.equipSkin(skinId)) {
+        renderSkinsModal();
+        updateUserBar();
+      }
+    };
+
+    // ── WORKSHOP UPGRADE SENJATA ──
     document.getElementById('btnMenuUpgrade').addEventListener('click', () => {
       renderUpgradeModal();
       document.getElementById('modalUpgrade').style.display = 'flex';
@@ -871,13 +898,13 @@
 
     function renderUpgradeModal() {
       const user = window.accountManager.getCurrentUser() || { gems: 0, weaponLevel: 1 };
-      document.getElementById('upgradeModalGems').textContent = user.gems || 0;
+      document.getElementById('upgradeModalGems').textContent = (user.gems || 0).toLocaleString();
 
       const levels = [
-        { lv: 1, name: 'Plasma Blaster Mk.I', desc: 'Peluru standar berkecepatan tinggi.', cost: 0, dmg: 1 },
-        { lv: 2, name: 'Twin Laser Mk.II', desc: 'Damage +100%, laju tembak lebih cepat.', cost: 5, dmg: 2 },
-        { lv: 3, name: 'Burst Plasma Mk.III', desc: '3 tembakan menyebar, daya rusak tinggi.', cost: 15, dmg: 3 },
-        { lv: 4, name: 'Explosive Nova Mk.IV', desc: 'Pisang plasma meledak area luas!', cost: 30, dmg: 4 }
+        { lv: 1, name: 'Pisang Standar Mk.I', desc: 'Peluru tunggal kecepatan stabil.', cost: 0, dmg: 1 },
+        { lv: 2, name: 'Twin Banana Mk.II', desc: 'Laju tembak lebih cepat & daya rusak ganda.', cost: 15, dmg: 2 },
+        { lv: 3, name: 'Spread Banana Mk.III', desc: '3 tembakan pisang menyebar sekaligus!', cost: 35, dmg: 3 },
+        { lv: 4, name: 'Nova Explosive Mk.IV', desc: 'Pisang plasma meledak area luas!', cost: 65, dmg: 4 }
       ];
 
       const cont = document.getElementById('upgradeCardsContainer');
@@ -893,7 +920,7 @@
           <div class="card-title">Tier ${item.lv}: ${item.name}</div>
           <div class="card-desc">${item.desc} (Dmg: ${item.dmg})</div>
           <div class="card-status" style="color: ${isCurrent ? '#00e5ff' : isUnlocked ? '#76ff03' : '#ffd600'};">
-            ${isCurrent ? '✔ SEDANG AKTIF' : isUnlocked ? '✔ TERBUKA' : `💎 Biaya: ${item.cost} Bits`}
+            ${isCurrent ? '✔ SEDANG AKTIF' : isUnlocked ? '✔ TERBUKA' : `💎 Biaya: ${item.cost} Gems`}
           </div>
         `;
         cont.appendChild(card);
@@ -907,7 +934,7 @@
         btnUp.textContent = 'MAX TIER REACHED!';
       } else {
         btnUp.disabled = (user.gems || 0) < nextItem.cost;
-        btnUp.textContent = `UPGRADE KE TIER ${nextItem.lv} (💎 ${nextItem.cost})`;
+        btnUp.textContent = `UPGRADE KE TIER ${nextItem.lv} (💎 ${nextItem.cost} GEMS)`;
         btnUp.onclick = () => {
           if (window.accountManager.upgradeWeapon(nextItem.cost)) {
             renderUpgradeModal();
@@ -917,56 +944,7 @@
       }
     }
 
-    // ── SKINS MODAL ──
-    document.getElementById('btnMenuSkins').addEventListener('click', () => {
-      renderSkinsModal();
-      document.getElementById('modalSkins').style.display = 'flex';
-    });
-    document.getElementById('btnCloseSkins').addEventListener('click', () => {
-      document.getElementById('modalSkins').style.display = 'none';
-      updateUserBar();
-    });
-
-    function renderSkinsModal() {
-      const user = window.accountManager.getCurrentUser() || { totalScore: 0, equippedSkin: 'classic' };
-      document.getElementById('skinsModalScore').textContent = (user.totalScore || 0).toLocaleString();
-
-      const skins = [
-        { id: 'classic', name: 'Cyber Ninja (Default)', icon: '🐵', req: 0, desc: 'Operative mantel taktis standar.' },
-        { id: 'ninja', name: 'Shadow Shinobi', icon: '🥷', req: 500, desc: 'Kamuflase malam, aksen pink neon.' },
-        { id: 'king', name: 'Mecha Overlord', icon: '👑', req: 1000, desc: 'Aura emas kerajaan Neo-Tokyo.' },
-        { id: 'mecha', name: 'Titan Android', icon: '🤖', req: 2500, desc: 'Pelindung baja komposit cyber.' }
-      ];
-
-      const cont = document.getElementById('skinsCardsContainer');
-      cont.innerHTML = '';
-      skins.forEach(s => {
-        const isEquipped = (user.equippedSkin || 'classic') === s.id;
-        const isUnlocked = (user.totalScore || 0) >= s.req;
-
-        const card = document.createElement('div');
-        card.className = 'feature-card';
-        card.style.cursor = isUnlocked ? 'pointer' : 'not-allowed';
-        card.innerHTML = `
-          <div class="card-icon">${s.icon}</div>
-          <div class="card-title">${s.name}</div>
-          <div class="card-desc">${s.desc}</div>
-          <div class="card-status" style="color:${isEquipped ? '#00e5ff' : isUnlocked ? '#76ff03' : '#ff007f'};">
-            ${isEquipped ? '✔ EQUIPPED' : isUnlocked ? 'KLIK UNTUK PAKAI' : `🔒 Butuh ${s.req} Skor`}
-          </div>
-        `;
-        if (isUnlocked) {
-          card.onclick = () => {
-            window.accountManager.equipSkin(s.id);
-            renderSkinsModal();
-            updateUserBar();
-          };
-        }
-        cont.appendChild(card);
-      });
-    }
-
-    // ── LEADERBOARD MODAL ──
+    // ── LEADERBOARD SUPABASE ──
     document.getElementById('btnMenuLeaderboard').addEventListener('click', async () => {
       document.getElementById('modalLeaderboard').style.display = 'flex';
       loadLeaderboardData();
@@ -980,7 +958,7 @@
 
     async function loadLeaderboardData() {
       const tbody = document.getElementById('leaderboardTbody');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--neon-cyan);">⏳ Menghubungkan ke Supabase...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:#ffd600;">⏳ Menghubungkan ke Supabase...</td></tr>';
       try {
         const scores = await window.leaderboardManager.getScores();
         window.leaderboardManager.renderToTable(tbody, scores);
@@ -989,15 +967,15 @@
       }
     }
 
-    // ── PROFIL MODAL ──
+    // ── PROFIL PEMAIN ──
     document.getElementById('btnMenuProfile').addEventListener('click', () => {
       const user = window.accountManager.getCurrentUser() || {};
-      document.getElementById('profName').textContent = user.username || 'GUEST';
+      document.getElementById('profName').textContent = user.username || 'Tamu';
       document.getElementById('profGems').textContent = (user.gems || 0).toLocaleString();
       document.getElementById('profTotalScore').textContent = (user.totalScore || 0).toLocaleString();
       document.getElementById('profHighScore').textContent = (user.highScore || 0).toLocaleString();
       document.getElementById('profWeapon').textContent = 'Tier ' + (user.weaponLevel || 1);
-      document.getElementById('profSkin').textContent = user.equippedSkin || 'Cyber Ninja';
+      document.getElementById('profSkin').textContent = user.equippedSkin || 'Classic Chimp';
 
       document.getElementById('modalProfile').style.display = 'flex';
     });

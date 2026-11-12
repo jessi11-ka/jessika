@@ -1,20 +1,25 @@
 /**
- * game.js — Monkey Banana Shooter (Cyberpunk Neo-Pixel Edition)
- * Visual Style matching reference:
- * - Rich Cyberpunk Street & Neo-Jungle aesthetic (Tiled sidewalks, neon signage, glowing vending machines, lanterns)
- * - Dynamic Neon Lighting & Ambient Blooms (Cyan, Magenta, Gold, Emerald)
- * - Cyberpunk Character Sprites (Cyber Monkey with glowing energy banana blaster, patrol guards, hover-jeeps)
- * - Rock-solid 5-Heart HP System: ONLY dies when all 5 hearts reach 0!
- *   - Energy shield bubble with 2-second invulnerability after being hit (prevents spam damage)
- * - Cyberpunk RPG HUD matching the screenshot (HP Bar, Shield/Stamina Bar, Energy/Ammo Bar)
- * - Bosses with telegraphing & balanced health
- * - Web Audio API Cyberpunk Synth Sounds
+ * game.js — Monkey Banana Shooter (Vibrant Colorful Pixel Edition)
+ * Fitur:
+ * - Grafik Pixel Art Colorful: Hutan tropis rimbun, trotoar batu warna-warni, bunga tropis, sungai jernih, pilar kuno.
+ * - Karakter Monyet Pixel Lucu: Animasi mata, telinga, mantel, dan Blaster Pisang Emas bercahaya.
+ * - Sistem Nyawa: 5 HATI PENUH (Hanya mati saat seluruh hati habis <= 0!).
+ *   - Energy Shield Bubble kebal 2.0 detik setiap kena hit + efek pentalan musuh agar tidak kena hit berulang.
+ * - Tingkat Kesulitan Berjenjang Tiap Level:
+ *   - Level 1: Zookeeper (lambat, tidak menembak, mengejar membawa jaring).
+ *   - Level 2: Dart Hunter (mulai menembakkan peluru bius kuning).
+ *   - Level 3: Armored Riot Guard (tameng baja biru, butuh 3 hit).
+ *   - Level 4: Commando Sniper (laser telegraph merah, tembakan cepat).
+ *   - Level 5+: Hunter Safari Jeep (mobil off-road kuning, peluru menyebar 3 arah).
+ *   - Boss Unik Tiap Level dengan HP bar berwarna & pola serangan khusus.
+ * - Mode Multiplayer Online via Room Code (Sistem Kode mirip Among Us dengan WebRTC PeerJS).
+ * - Web Audio API Synthesizer (SFX retro arcade jernih tanpa file eksternal).
  */
 
 // ============================================================================
-// 1. CYBERPUNK SOUND SYNTHESIZER
+// 1. SOUND SYSTEM RETRO COLORFUL
 // ============================================================================
-class CyberSoundSystem {
+class ColorfulRetroAudio {
   constructor() {
     this.ctx = null;
     this.muted = false;
@@ -35,8 +40,7 @@ class CyberSoundSystem {
     return this.muted;
   }
 
-  // Plasma Banana Shot
-  playShoot(upgradeLevel = 1) {
+  playShoot(tier = 1) {
     if (this.muted) return;
     this._init();
     if (!this.ctx) return;
@@ -44,42 +48,21 @@ class CyberSoundSystem {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = upgradeLevel >= 4 ? 'sawtooth' : 'triangle';
-    const startF = 440 + upgradeLevel * 60;
+    osc.type = tier >= 4 ? 'sawtooth' : 'triangle';
+    const startF = 460 + tier * 50;
     osc.frequency.setValueAtTime(startF, t);
-    osc.frequency.exponentialRampToValueAtTime(880 + upgradeLevel * 80, t + 0.05);
-    osc.frequency.exponentialRampToValueAtTime(140, t + 0.14);
+    osc.frequency.exponentialRampToValueAtTime(900 + tier * 70, t + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(150, t + 0.13);
 
     gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.13);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start(t);
-    osc.stop(t + 0.15);
+    osc.stop(t + 0.14);
   }
 
-  // Cyber Reload / Power Recharge
-  playReload() {
-    if (this.muted) return;
-    this._init();
-    if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    [0, 0.15, 0.32].forEach((delay, i) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(i === 2 ? 740 : 380, t + delay);
-      gain.gain.setValueAtTime(0.2, t + delay);
-      gain.gain.exponentialRampToValueAtTime(0.01, t + delay + 0.07);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t + delay);
-      osc.stop(t + delay + 0.08);
-    });
-  }
-
-  // Cyber Dash / Dodge Roll
   playDodge() {
     if (this.muted) return;
     this._init();
@@ -88,23 +71,76 @@ class CyberSoundSystem {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(320, t);
-    osc.frequency.exponentialRampToValueAtTime(80, t + 0.2);
+    osc.frequency.setValueAtTime(360, t);
+    osc.frequency.exponentialRampToValueAtTime(90, t + 0.18);
     gain.gain.setValueAtTime(0.3, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start(t);
-    osc.stop(t + 0.21);
+    osc.stop(t + 0.19);
   }
 
-  // Pickup Item
+  playHit() {
+    if (this.muted) return;
+    this._init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(280, t);
+    osc.frequency.exponentialRampToValueAtTime(80, t + 0.1);
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.11);
+  }
+
+  playPlayerHit() {
+    if (this.muted) return;
+    this._init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.exponentialRampToValueAtTime(50, t + 0.25);
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.26);
+  }
+
+  playExplosion() {
+    if (this.muted) return;
+    this._init();
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(30, t + 0.35);
+    gain.gain.setValueAtTime(0.35, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.36);
+  }
+
   playPickup(type) {
     if (this.muted) return;
     this._init();
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    const notes = type === 'gem' ? [587, 740, 880, 1174] : type === 'health' ? [440, 554, 659, 880] : [392, 493, 587];
+    const notes = type === 'gem' ? [523, 659, 784, 1046] : type === 'health' ? [440, 554, 659, 880] : [392, 493, 587];
     notes.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -120,66 +156,28 @@ class CyberSoundSystem {
     });
   }
 
-  // Laser / Enemy Shoot
-  playEnemyShoot() {
+  playReload() {
     if (this.muted) return;
     this._init();
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(360, t);
-    osc.frequency.exponentialRampToValueAtTime(60, t + 0.14);
-    gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.15);
-  }
-
-  // Shield Deflect / Player Damage
-  playPlayerHit() {
-    if (this.muted) return;
-    this._init();
-    if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(320, t);
-    osc.frequency.linearRampToValueAtTime(100, t + 0.22);
-    gain.gain.setValueAtTime(0.35, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.23);
-  }
-
-  // Plasma Explosion
-  playExplosion() {
-    if (this.muted) return;
-    this._init();
-    if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(160, t);
-    osc.frequency.exponentialRampToValueAtTime(25, t + 0.42);
-    gain.gain.setValueAtTime(0.4, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.42);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(t);
-    osc.stop(t + 0.44);
+    [0, 0.14, 0.28].forEach((delay, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(i === 2 ? 740 : 420, t + delay);
+      gain.gain.setValueAtTime(0.18, t + delay);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + delay + 0.07);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t + delay);
+      osc.stop(t + delay + 0.08);
+    });
   }
 }
 
 // ============================================================================
-// 2. MAIN ENGINE: CYBERPUNK MONKEY SHOOTER
+// 2. ENGINE GAMEPLAY UTAMA: COLORFUL PIXEL MONKEY BANANA SHOOTER
 // ============================================================================
 class MonkeyBananaShooter {
   constructor(canvasId, options = {}) {
@@ -191,16 +189,20 @@ class MonkeyBananaShooter {
     this.canvas.height = 460;
     this.ctx.imageSmoothingEnabled = false;
 
-    // Config options
+    // Mode Multiplayer Online / Local
     this.isDuo = options.isDuo || false;
-    this.bgTheme = options.bgTheme || 'jungle';
+    this.isOnline = options.isOnline || false;
+    this.isHost = options.isHost !== false; // default host jika online
+    this.networkConn = options.networkConn || null;
+
+    // Konfigurasi
     this.skinP1 = options.skinP1 || 'classic';
     this.weaponLevel = options.weaponLevel || 1;
     this.playerAccount = options.playerAccount || null;
 
-    this.sfx = new CyberSoundSystem();
+    this.sfx = new ColorfulRetroAudio();
 
-    // Stats
+    // Statistik Permainan
     this.score = 0;
     this.wave = 1;
     this.gemsCollected = 0;
@@ -209,37 +211,45 @@ class MonkeyBananaShooter {
     this.running = false;
     this.over = false;
 
-    // Boss
-    this.currentBoss = null;
-
-    // Entities
+    // Entitas
     this.bananas = [];
     this.hunters = [];
     this.hunterBullets = [];
     this.itemDrops = [];
     this.particles = [];
     this.floatingTexts = [];
+    this.currentBoss = null;
 
     // Screen Shake
     this.shakeTimer = 0;
     this.shakeIntensity = 0;
 
-    // Input
+    // Input P1
     this.keys = {};
     this.mouseX = this.canvas.width / 2;
     this.mouseY = this.canvas.height / 2;
     this.mouseDown = false;
 
-    // Player 1 (5 Full Hearts, rock solid!)
-    this.p1 = this._createPlayer(this.canvas.width / 2 - (this.isDuo ? 40 : 0), this.canvas.height - 80, this.skinP1, 1);
-    this.p2 = this.isDuo ? this._createPlayer(this.canvas.width / 2 + 40, this.canvas.height - 80, 'chimp_blue', 2) : null;
+    // Input Remote P2 (dari WebRTC PeerJS)
+    this.remoteInputP2 = {
+      x: this.canvas.width / 2 + 40,
+      y: this.canvas.height - 80,
+      angle: -Math.PI / 2,
+      shooting: false,
+      dodging: false,
+      reloading: false
+    };
 
-    // Cyber Street Bounds & Props (Matching screenshot: Marts, Stairs, Terminals, Neon)
-    this.street = {
-      left: 110,
-      right: 530,
-      width: 420,
-      shops: this._generateCyberCityProps()
+    // Karakter Pemain (5 NYAWA LENGKAP - ANTI MATI MENDADAK!)
+    this.p1 = this._createPlayer(this.canvas.width / 2 - (this.isDuo ? 40 : 0), this.canvas.height - 80, this.skinP1, 1);
+    this.p2 = this.isDuo ? this._createPlayer(this.canvas.width / 2 + 40, this.canvas.height - 80, 'ninja', 2) : null;
+
+    // Arena Hutan Tropis Colorful
+    this.arena = {
+      left: 100,
+      right: 540,
+      width: 440,
+      decorations: this._generateJungleDecorations()
     };
 
     // Wave Progression
@@ -249,6 +259,7 @@ class MonkeyBananaShooter {
     this.spawnInterval = 110;
 
     this._bindEvents();
+    this._bindNetwork();
     this.startGame();
   }
 
@@ -258,7 +269,7 @@ class MonkeyBananaShooter {
       x: x,
       y: y,
       radius: 18,
-      speed: 3.9,
+      speed: 3.8,
       angle: -Math.PI / 2,
 
       // ── SISTEM NYAWA: 5 HATI PENUH (HANYA MATI JIKA HABIS 0!) ──
@@ -266,7 +277,7 @@ class MonkeyBananaShooter {
       maxLives: 5,
       skin: skin,
 
-      // Amunisi & Magasin
+      // Amunisi & Reload
       ammoMag: 12,
       maxAmmoMag: 12,
       ammoStock: 100,
@@ -285,40 +296,103 @@ class MonkeyBananaShooter {
 
       // Shield Pelindung (Kebal selama timer > 0)
       invulnerableTimer: 0,
-      shieldMaxTimer: 110 // ~1.9 detik kebal anti-spam!
+      shieldMaxTimer: 120 // 2.0 detik kebal anti-spam hit
     };
   }
 
-  // ── GENERATE CYBERPUNK CITY PROPS (Matching Screenshot) ──
-  _generateCyberCityProps() {
-    return {
-      // Toko Kiri: "WEFCO MART" & "YOKU FORGE"
-      leftBuildings: [
-        { name: 'wefco mart', x: 8, y: 35, w: 100, h: 95, color: '#162238', signColor: '#00e5ff' },
-        { name: 'yoku forge', x: 8, y: 220, w: 100, h: 100, color: '#251b38', signColor: '#00e5ff' },
-        { name: 'cyber terminal', x: 8, y: 345, w: 95, h: 95, color: '#1a1930', signColor: '#ff007f' }
-      ],
-      // Toko Kanan: "SOUL LINK" & "CYBER SHRINE"
-      rightBuildings: [
-        { name: 'soul LINK', x: 532, y: 40, w: 100, h: 95, color: '#1d1933', signColor: '#00e5ff' },
-        { name: 'torii tech', x: 532, y: 225, w: 100, h: 95, color: '#2b1d2e', signColor: '#ff007f' },
-        { name: 'storage pod', x: 535, y: 345, w: 95, h: 95, color: '#182436', signColor: '#ffd700' }
-      ],
-      // Vending machines & street lamps
-      vendingMachines: [
-        { x: 92, y: 145, color: '#00e5ff', label: 'BUZZ' },
-        { x: 540, y: 150, color: '#ff007f', label: 'SHOP' },
-        { x: 92, y: 325, color: '#ffd600', label: 'POTION' }
-      ],
-      // Decals (Stairs, sewer grates, cables)
-      stairs: [
-        { y: 170, h: 40 },
-        { y: 310, h: 35 }
-      ]
-    };
+  // ── GENERATE DEKORASI HUTAN COLORFUL ──
+  _generateJungleDecorations() {
+    const flowers = [];
+    const colors = ['#ff007f', '#ffd600', '#00e5ff', '#ff5722', '#e040fb'];
+    for (let i = 0; i < 28; i++) {
+      flowers.push({
+        x: 10 + Math.random() * 620,
+        y: 10 + Math.random() * 440,
+        color: colors[i % colors.length],
+        size: 3 + Math.random() * 3,
+        petals: 4 + (i % 3)
+      });
+    }
+
+    const ancientPillars = [
+      { x: 50, y: 80, w: 34, h: 50, gem: '#00e5ff' },
+      { x: 50, y: 320, w: 34, h: 50, gem: '#ffd600' },
+      { x: 580, y: 120, w: 34, h: 50, gem: '#ff007f' },
+      { x: 580, y: 340, w: 34, h: 50, gem: '#76ff03' }
+    ];
+
+    return { flowers, ancientPillars };
   }
 
-  // ─────────────────────────── EVENT BINDING ───────────────────────────
+  // ── NETWORK BINDING (WEBRTC PEERJS AMONG US STYLE) ──
+  _bindNetwork() {
+    if (!this.isOnline || !this.networkConn) return;
+
+    this.networkConn.on('data', (data) => {
+      if (this.isHost) {
+        // Host menerima input Player 2 dari Guest
+        if (data.type === 'guest_input') {
+          this.remoteInputP2 = data.payload;
+          if (this.p2 && this.p2.lives > 0) {
+            this.p2.x = data.payload.x;
+            this.p2.y = data.payload.y;
+            this.p2.angle = data.payload.angle;
+            if (data.payload.shooting) this._tryShootPlayer(this.p2);
+            if (data.payload.dodging) this._performDodge(this.p2);
+            if (data.payload.reloading) this._startReload(this.p2);
+          }
+        }
+      } else {
+        // Guest menerima snapshot game state dari Host
+        if (data.type === 'host_sync') {
+          this._applyHostSync(data.payload);
+        }
+      }
+    });
+  }
+
+  _broadcastStateToGuest() {
+    if (!this.isOnline || !this.isHost || !this.networkConn || !this.networkConn.open) return;
+
+    // Kirim snapshot state ringkas setiap beberapa frame
+    const payload = {
+      score: this.score,
+      wave: this.wave,
+      p1: { x: this.p1.x, y: this.p1.y, angle: this.p1.angle, lives: this.p1.lives, stamina: this.p1.stamina, ammo: this.p1.ammoMag, skin: this.p1.skin },
+      p2Lives: this.p2 ? this.p2.lives : 0,
+      enemies: this.hunters.map(h => ({ x: h.x, y: h.y, angle: h.angle, type: h.type, hp: h.hp, maxHp: h.maxHp })),
+      bullets: this.hunterBullets.map(b => ({ x: b.x, y: b.y })),
+      bananas: this.bananas.map(b => ({ x: b.x, y: b.y, rot: b.rotation })),
+      items: this.itemDrops.map(it => ({ x: it.x, y: it.y, type: it.type })),
+      boss: this.currentBoss ? { x: this.currentBoss.x, y: this.currentBoss.y, hp: this.currentBoss.hp, maxHp: this.currentBoss.maxHp, name: this.currentBoss.name } : null
+    };
+
+    try {
+      this.networkConn.send({ type: 'host_sync', payload });
+    } catch (_) {}
+  }
+
+  _applyHostSync(state) {
+    this.score = state.score;
+    this.wave = state.wave;
+    this.p1.x = state.p1.x;
+    this.p1.y = state.p1.y;
+    this.p1.angle = state.p1.angle;
+    this.p1.lives = state.p1.lives;
+
+    if (this.p2) {
+      this.p2.lives = state.p2Lives;
+    }
+
+    // Sync entitas
+    this.hunters = state.enemies.map(e => ({ ...e, radius: e.type === 'jeep' ? 26 : 16 }));
+    this.hunterBullets = state.bullets.map(b => ({ ...b, radius: 4 }));
+    this.bananas = state.bananas.map(b => ({ ...b, radius: 8, rotation: b.rot }));
+    this.itemDrops = state.items.map(it => ({ ...it, floatOffset: 0 }));
+    this.currentBoss = state.boss ? { ...state.boss, radius: 36 } : null;
+  }
+
+  // ── BIND INPUT EVENT ──
   _bindEvents() {
     this.canvas.addEventListener('mousemove', e => {
       const rect = this.canvas.getBoundingClientRect();
@@ -329,54 +403,49 @@ class MonkeyBananaShooter {
     this.canvas.addEventListener('mousedown', e => {
       if (e.button === 0 && this.running && !this.over) {
         this.mouseDown = true;
-        this._tryShootPlayer(this.p1);
+        const playerControl = (this.isOnline && !this.isHost && this.p2) ? this.p2 : this.p1;
+        this._tryShootPlayer(playerControl);
+
+        if (this.isOnline && !this.isHost && this.networkConn && this.networkConn.open) {
+          this.networkConn.send({
+            type: 'guest_input',
+            payload: { x: this.p2.x, y: this.p2.y, angle: this.p2.angle, shooting: true }
+          });
+        }
       }
     });
 
     window.addEventListener('mouseup', () => { this.mouseDown = false; });
 
-    // Touch
-    this.canvas.addEventListener('touchmove', e => {
-      e.preventDefault();
-      const rect = this.canvas.getBoundingClientRect();
-      this.mouseX = (e.touches[0].clientX - rect.left) * (this.canvas.width / rect.width);
-      this.mouseY = (e.touches[0].clientY - rect.top) * (this.canvas.height / rect.height);
-    }, { passive: false });
-
-    this.canvas.addEventListener('touchstart', e => {
-      e.preventDefault();
-      const rect = this.canvas.getBoundingClientRect();
-      this.mouseX = (e.touches[0].clientX - rect.left) * (this.canvas.width / rect.width);
-      this.mouseY = (e.touches[0].clientY - rect.top) * (this.canvas.height / rect.height);
-      if (this.running && !this.over) this._tryShootPlayer(this.p1);
-    }, { passive: false });
-
-    // Keyboard
+    // Keyboard Events
     window.addEventListener('keydown', e => {
       this.keys[e.code] = true;
       if (!this.running || this.over) return;
 
+      const activePlayer = (this.isOnline && !this.isHost && this.p2) ? this.p2 : this.p1;
+
       // P1 Dodge: SPASI
       if (e.code === 'Space') {
         e.preventDefault();
-        this._performDodge(this.p1);
-      }
-      // P1 Reload: R
-      if (e.code === 'KeyR') {
-        this._startReload(this.p1);
+        this._performDodge(activePlayer);
+        if (this.isOnline && !this.isHost && this.networkConn && this.networkConn.open) {
+          this.networkConn.send({ type: 'guest_input', payload: { x: activePlayer.x, y: activePlayer.y, angle: activePlayer.angle, dodging: true } });
+        }
       }
 
-      // P2 Controls
-      if (this.p2 && this.p2.lives > 0) {
-        if (e.code === 'Numpad0' || e.code === 'Enter' || e.code === 'KeyK') {
-          this._tryShootPlayer(this.p2);
+      // P1 Reload: R
+      if (e.code === 'KeyR') {
+        this._startReload(activePlayer);
+        if (this.isOnline && !this.isHost && this.networkConn && this.networkConn.open) {
+          this.networkConn.send({ type: 'guest_input', payload: { x: activePlayer.x, y: activePlayer.y, angle: activePlayer.angle, reloading: true } });
         }
-        if (e.code === 'ShiftRight' || e.code === 'KeyM') {
-          this._performDodge(this.p2);
-        }
-        if (e.code === 'KeyL' || e.code === 'KeyP') {
-          this._startReload(this.p2);
-        }
+      }
+
+      // Local Duo (Jika bukan online, player 2 main via tombol panah + Enter/Shift)
+      if (this.isDuo && !this.isOnline && this.p2 && this.p2.lives > 0) {
+        if (e.code === 'Enter' || e.code === 'Numpad0' || e.code === 'KeyK') this._tryShootPlayer(this.p2);
+        if (e.code === 'ShiftRight' || e.code === 'KeyM') this._performDodge(this.p2);
+        if (e.code === 'KeyL' || e.code === 'KeyP') this._startReload(this.p2);
       }
     });
 
@@ -385,7 +454,7 @@ class MonkeyBananaShooter {
     });
   }
 
-  // ─────────────────────────── GAMEPLAY LOGIC ───────────────────────────
+  // ── GAMEPLAY LOOP & WAVE PROGRESSION ──
   startGame() {
     this.score = 0;
     this.wave = 1;
@@ -403,16 +472,17 @@ class MonkeyBananaShooter {
     this.floatingTexts = [];
     this.currentBoss = null;
 
-    // Reset P1 (5 Nyawa)
+    // Reset P1 & P2
     this.p1 = this._createPlayer(this.canvas.width / 2 - (this.isDuo ? 40 : 0), this.canvas.height - 80, this.skinP1, 1);
     if (this.isDuo) {
-      this.p2 = this._createPlayer(this.canvas.width / 2 + 40, this.canvas.height - 80, 'chimp_blue', 2);
+      this.p2 = this._createPlayer(this.canvas.width / 2 + 40, this.canvas.height - 80, 'ninja', 2);
     }
 
     this._startWave(1);
     this._loop();
   }
 
+  // ── PER LEVEL DIBIKIN LEBIH SUSAH DENGAN TIPE MUSUH BARU ──
   _startWave(w) {
     this.wave = w;
     this.bananas = [];
@@ -420,12 +490,22 @@ class MonkeyBananaShooter {
     this.hunters = [];
     this.currentBoss = null;
 
-    this.waveTotalEnemies = 4 + w * 2;
+    // Jumlah musuh bertambah tiap level
+    this.waveTotalEnemies = 5 + w * 3;
     this.waveSpawnedEnemies = 0;
-    this.spawnTimer = 35;
-    this.spawnInterval = Math.max(65, 120 - w * 6);
+    this.spawnTimer = 25;
+    // Interval spawn semakin cepat per level
+    this.spawnInterval = Math.max(55, 120 - w * 10);
 
-    this._addFloatingText(this.canvas.width / 2, this.canvas.height / 2, `⚡ SECTOR ${w} ACTIVE!`, '#00e5ff', 45);
+    const waveThemes = [
+      '🌿 LEVEL 1: SERBUAN ZOOKEEPER!',
+      '🎯 LEVEL 2: PENEMBAK BIUS DATANG!',
+      '🛡️ LEVEL 3: PASUKAN TAMENG BAJA!',
+      '⚡ LEVEL 4: SNIPER KOMANDO!',
+      '🚗 LEVEL 5: PATROLI SAFARI JEEP!'
+    ];
+    const bannerText = waveThemes[Math.min(w - 1, waveThemes.length - 1)] || `🔥 LEVEL ${w}: PERANG TOTAL RIMBA!`;
+    this._addFloatingText(this.canvas.width / 2, this.canvas.height / 2, bannerText, '#ffd600', 50);
   }
 
   _performDodge(p) {
@@ -434,15 +514,15 @@ class MonkeyBananaShooter {
     p.stamina -= 30;
     p.isDodging = true;
     p.dodgeTimer = p.dodgeDuration;
-    p.invulnerableTimer = p.dodgeDuration + 10;
+    p.invulnerableTimer = p.dodgeDuration + 12; // Kebal saat roll
     this.sfx.playDodge();
 
-    const dashSpeed = 9.2;
+    const dashSpeed = 9.5;
     p.dodgeVx = Math.cos(p.angle) * dashSpeed;
     p.dodgeVy = Math.sin(p.angle) * dashSpeed;
 
-    this._addFloatingText(p.x, p.y - 20, 'CYBER DASH! ⚡', '#00e5ff', 20);
-    this._spawnParticles(p.x, p.y, '#00e5ff', 8);
+    this._addFloatingText(p.x, p.y - 20, 'DODGE! ⚡', '#00e5ff', 20);
+    this._spawnParticles(p.x, p.y, '#ffd600', 10);
   }
 
   _startReload(p) {
@@ -450,278 +530,265 @@ class MonkeyBananaShooter {
     p.isReloading = true;
     p.reloadTimer = p.reloadDuration;
     this.sfx.playReload();
-    this._addFloatingText(p.x, p.y - 25, 'RECHARGING... 🔋', '#ffeb3b', 25);
-  }
-
-  _finishReload(p) {
-    const need = p.maxAmmoMag - p.ammoMag;
-    const can = Math.min(need, p.ammoStock);
-    p.ammoMag += can;
-    p.ammoStock -= can;
-    p.isReloading = false;
-    this._addFloatingText(p.x, p.y - 25, 'PLASMA READY! ⚡', '#00e676', 20);
+    this._addFloatingText(p.x, p.y - 20, 'RELOADING... 🍌', '#ffd600', 25);
   }
 
   _tryShootPlayer(p) {
-    if (!p || p.lives <= 0 || p.isDodging || p.isReloading) return;
+    if (p.lives <= 0 || p.isDodging) return;
+
+    if (p.isReloading) {
+      this._addFloatingText(p.x, p.y - 20, 'RELOADING! ⏳', '#ff5722', 15);
+      return;
+    }
 
     if (p.ammoMag <= 0) {
-      if (p.ammoStock > 0) this._startReload(p);
-      else this._addFloatingText(p.x, p.y - 25, 'CORE DEPLETED!', '#ff1744', 20);
+      this._startReload(p);
       return;
     }
 
     p.ammoMag--;
     this.shotsFired++;
-    this.sfx.playShoot(this.weaponLevel);
+    const tier = this.weaponLevel || 1;
+    this.sfx.playShoot(tier);
 
-    const angle = p.angle;
-    const speed = 10.2;
+    const bSpeed = 10;
+    const dmg = tier;
+    const isExplosive = tier >= 4;
 
-    if (this.weaponLevel === 1) {
-      this._spawnBananaProjectile(p.x, p.y, angle, speed, 1, false);
-    } else if (this.weaponLevel === 2) {
-      this._spawnBananaProjectile(p.x, p.y, angle, speed * 1.25, 2, false);
-    } else if (this.weaponLevel === 3) {
-      this._spawnBananaProjectile(p.x + Math.cos(angle + 1.57) * 8, p.y + Math.sin(angle + 1.57) * 8, angle, speed, 2, false);
-      this._spawnBananaProjectile(p.x + Math.cos(angle - 1.57) * 8, p.y + Math.sin(angle - 1.57) * 8, angle, speed, 2, false);
-    } else if (this.weaponLevel === 4) {
-      [-0.18, 0, 0.18].forEach(spread => {
-        this._spawnBananaProjectile(p.x, p.y, angle + spread, speed, 2, false);
+    // Pola Tembakan Sesuai Tier Senjata
+    if (tier === 3) {
+      // 3 Tembakan Menyebar (Spread Shot)
+      [-0.18, 0, 0.18].forEach(offsetAngle => {
+        this.bananas.push({
+          x: p.x + Math.cos(p.angle) * 18,
+          y: p.y + Math.sin(p.angle) * 18,
+          vx: Math.cos(p.angle + offsetAngle) * bSpeed,
+          vy: Math.sin(p.angle + offsetAngle) * bSpeed,
+          radius: 8,
+          damage: dmg,
+          isExplosive: false,
+          rotation: p.angle,
+          rotSpeed: 0.28
+        });
       });
     } else {
-      this._spawnBananaProjectile(p.x, p.y, angle, speed * 1.15, 4, true);
+      this.bananas.push({
+        x: p.x + Math.cos(p.angle) * 18,
+        y: p.y + Math.sin(p.angle) * 18,
+        vx: Math.cos(p.angle) * bSpeed,
+        vy: Math.sin(p.angle) * bSpeed,
+        radius: 8,
+        damage: dmg,
+        isExplosive: isExplosive,
+        rotation: p.angle,
+        rotSpeed: 0.28
+      });
+    }
+
+    this._spawnParticles(p.x + Math.cos(p.angle) * 20, p.y + Math.sin(p.angle) * 20, '#ffd600', 4);
+
+    if (p.ammoMag <= 0 && p.ammoStock > 0) {
+      this._startReload(p);
     }
   }
 
-  _spawnBananaProjectile(x, y, angle, speed, damage, isExplosive) {
-    this.bananas.push({
-      x: x + Math.cos(angle) * 22,
-      y: y + Math.sin(angle) * 22,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      rotation: angle,
-      rotSpeed: 0.35,
-      damage: damage,
-      isExplosive: isExplosive,
-      radius: isExplosive ? 14 : 9
-    });
-  }
-
-  // ─────────────────────────── MUSUH BERKECEPATAN SANTAI ───────────────────────────
-  _spawnEnemy() {
-    const w = this.wave;
-    let type = 'zookeeper';
-
-    if (w === 1) {
-      type = 'zookeeper';
-    } else if (w >= 2 && w < 5) {
-      type = Math.random() > 0.4 ? 'hunter' : 'zookeeper';
-    } else {
-      const r = Math.random();
-      type = r < 0.3 ? 'jeep' : r < 0.7 ? 'hunter' : 'zookeeper';
-    }
-
-    const spawnX = this.street.left + 40 + Math.random() * (this.street.width - 80);
-    const spawnY = -40;
-
-    let hp = 1;
-    let speed = 0.95; // Santai & terukur
-    let radius = 18;
-
-    if (type === 'zookeeper') {
-      hp = 1 + Math.floor(w / 4);
-      speed = 0.95;
-    } else if (type === 'hunter') {
-      hp = 2 + Math.floor(w / 4);
-      speed = 0.75;
-    } else if (type === 'jeep') {
-      hp = 4 + w;
-      speed = 1.25;
-      radius = 28;
-    }
-
-    this.hunters.push({
-      type: type,
-      x: spawnX,
-      y: spawnY,
-      radius: radius,
-      speed: speed,
-      hp: hp,
-      maxHp: hp,
-      angle: Math.PI / 2,
-      canShoot: type === 'hunter' || type === 'jeep',
-      shootCooldown: 80 + Math.floor(Math.random() * 80),
-      walkCycle: 0
-    });
-  }
-
-  // ─────────────────────────── BOSS GAMPANG & BERSAHABAT ───────────────────────────
-  _spawnBoss() {
-    this.sfx.playBossAlert();
-    this._screenShake(18, 4);
-
-    const w = this.wave;
-    let bossName = `Cyborg Warden (Lv.${w})`;
-    let bossType = 'boss_zookeeper';
-
-    // HP disesuaikan agar mudah dikalahkan & menyenangkan
-    let maxHp = 14;
-    if (w >= 2 && w < 5) {
-      bossName = `Laser Commander (Lv.${w})`;
-      bossType = 'boss_hunter';
-      maxHp = 20 + (w - 2) * 4;
-    } else if (w >= 5) {
-      bossName = `Heavy Cyber-Jeep (Lv.${w})`;
-      bossType = 'boss_jeep';
-      maxHp = 30 + (w - 5) * 5;
-    }
-
-    this.currentBoss = {
-      name: bossName,
-      type: bossType,
-      x: this.canvas.width / 2,
-      y: -60,
-      radius: 35,
-      speed: 0.75,
-      hp: maxHp,
-      maxHp: maxHp,
-      angle: Math.PI / 2,
-      shootCooldown: 110,
-      telegraphTimer: 0,
-      walkCycle: 0
-    };
-
-    this._addFloatingText(this.canvas.width / 2, 75, `⚠️ BOSS WARNING: ${bossName}!`, '#ff007f', 50);
-  }
-
-  // ─────────────────────────── ITEM DROPS ───────────────────────────
-  _dropRandomItem(x, y) {
-    if (Math.random() > 0.5) return;
-
-    const r = Math.random();
-    let itemType = 'gem';
-
-    if (r < 0.40) itemType = 'gem';
-    else if (r < 0.70) itemType = 'ammo';
-    else if (r < 0.85) itemType = 'health'; // Sering drop hati!
-    else itemType = 'stamina';
-
-    this.itemDrops.push({
-      type: itemType,
-      x: x,
-      y: y,
-      life: 600,
-      floatOffset: Math.random() * Math.PI * 2
-    });
-  }
-
-  // ─────────────────────────── UPDATE LOOP ───────────────────────────
+  // ── UPDATE LOOP UTAMA ──
   _update() {
     if (!this.running || this.over) return;
 
     if (this.shakeTimer > 0) this.shakeTimer--;
 
-    // 1. Players
-    this._updatePlayerMovement(this.p1, 'KeyW', 'KeyS', 'KeyA', 'KeyD', this.mouseX, this.mouseY);
-
-    if (this.mouseDown && Math.random() < 0.22) {
-      this._tryShootPlayer(this.p1);
+    // 1. Update Player 1 (Host / Solo)
+    if (!this.isOnline || this.isHost) {
+      this._updatePlayerMovement(this.p1, 'KeyW', 'KeyS', 'KeyA', 'KeyD', this.mouseX, this.mouseY);
     }
 
+    // 2. Update Player 2
     if (this.p2 && this.p2.lives > 0) {
-      let tx = this.p2.x;
-      let ty = this.p2.y - 100;
-      if (this.hunters.length > 0) {
-        tx = this.hunters[0].x;
-        ty = this.hunters[0].y;
+      if (this.isOnline && this.isHost) {
+        // P2 digerakkan dari remote input
+        this._updatePlayerRemote(this.p2);
+      } else if (!this.isOnline) {
+        // P2 Local via Panah Keyboard
+        const p2TargetX = this.keys['ArrowLeft'] ? this.p2.x - 50 : this.keys['ArrowRight'] ? this.p2.x + 50 : this.p2.x;
+        const p2TargetY = this.keys['ArrowUp'] ? this.p2.y - 50 : this.keys['ArrowDown'] ? this.p2.y + 50 : this.p2.y;
+        this._updatePlayerMovement(this.p2, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', p2TargetX, p2TargetY);
       }
-      this._updatePlayerMovement(this.p2, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', tx, ty);
     }
 
-    // 2. Spawn enemies / Boss
-    if (this.waveSpawnedEnemies < this.waveTotalEnemies) {
+    // Hanya Host yang mengkalkulasi musuh & spawn agar sinkron
+    if (!this.isOnline || this.isHost) {
+      // 3. Spawning Musuh Berdasarkan Level
       this.spawnTimer--;
-      if (this.spawnTimer <= 0) {
-        this._spawnEnemy();
-        this.waveSpawnedEnemies++;
+      if (this.spawnTimer <= 0 && this.waveSpawnedEnemies < this.waveTotalEnemies) {
         this.spawnTimer = this.spawnInterval;
+        this._spawnEnemyForLevel(this.wave);
+        this.waveSpawnedEnemies++;
       }
-    } else if (!this.currentBoss && this.hunters.length === 0) {
-      this._spawnBoss();
+
+      // 4. Spawn Boss saat seluruh musuh wave habis
+      if (this.waveSpawnedEnemies >= this.waveTotalEnemies && this.hunters.length === 0 && !this.currentBoss) {
+        this._spawnBossForLevel(this.wave);
+      }
+
+      // 5. Update Musuh & Boss
+      for (let i = this.hunters.length - 1; i >= 0; i--) {
+        this._updateHunter(this.hunters[i], i);
+      }
+      if (this.currentBoss) {
+        this._updateBoss(this.currentBoss);
+      }
+
+      // 6. Broadcast ke Player 2
+      if (this.isOnline && this.isHost && Math.random() < 0.5) {
+        this._broadcastStateToGuest();
+      }
     }
 
-    // 3. Boss
-    if (this.currentBoss) this._updateBoss(this.currentBoss);
-
-    // 4. Regular Enemies
-    for (let i = this.hunters.length - 1; i >= 0; i--) {
-      this._updateHunter(this.hunters[i], i);
-    }
-
-    // 5. Bananas
+    // 7. Bananas & Bullets
     this._updateBananas();
-
-    // 6. Enemy Bullets
     this._updateHunterBullets();
-
-    // 7. Drops
     this._updateItemDrops();
-
-    // 8. Particles & Texts
     this._updateParticles();
 
-    // 9. GAME OVER: HANYA JIKA NYAWA BENAR-BENAR HABIS <= 0!
+    // 8. CEK GAME OVER: HANYA JIKA SELURUH NYAWA BENAR-BENAR 0!
     const p1Dead = this.p1.lives <= 0;
-    const p2Dead = this.isDuo ? (this.p2 && this.p2.lives <= 0) : true;
+    const p2Dead = this.isDuo ? (!this.p2 || this.p2.lives <= 0) : true;
     if (p1Dead && p2Dead) {
       this._triggerGameOver();
     }
   }
 
-  _updatePlayerMovement(player, upKey, downKey, leftKey, rightKey, targetX, targetY) {
-    if (player.lives <= 0) return;
+  _updatePlayerMovement(p, upKey, downKey, leftKey, rightKey, targetX, targetY) {
+    if (p.lives <= 0) return;
 
-    if (player.stamina < player.maxStamina && !player.isDodging) {
-      player.stamina = Math.min(player.maxStamina, player.stamina + 0.45);
+    if (p.stamina < p.maxStamina && !p.isDodging) {
+      p.stamina = Math.min(p.maxStamina, p.stamina + 0.45);
     }
 
-    if (player.isReloading) {
-      player.reloadTimer--;
-      if (player.reloadTimer <= 0) this._finishReload(player);
+    if (p.isReloading) {
+      p.reloadTimer--;
+      if (p.reloadTimer <= 0) {
+        p.isReloading = false;
+        const needed = p.maxAmmoMag - p.ammoMag;
+        const take = Math.min(needed, p.ammoStock);
+        p.ammoMag += take;
+        p.ammoStock -= take;
+        this._addFloatingText(p.x, p.y - 20, 'READY! ⚡', '#76ff03', 20);
+      }
     }
 
-    if (player.isDodging) {
-      player.x += player.dodgeVx;
-      player.y += player.dodgeVy;
-      player.dodgeTimer--;
-      if (player.dodgeTimer <= 0) player.isDodging = false;
+    if (p.isDodging) {
+      p.x += p.dodgeVx;
+      p.y += p.dodgeVy;
+      p.dodgeTimer--;
+      if (p.dodgeTimer <= 0) p.isDodging = false;
     } else {
-      let mx = 0;
-      let my = 0;
-      if (this.keys[upKey]) my -= 1;
-      if (this.keys[downKey]) my += 1;
-      if (this.keys[leftKey]) mx -= 1;
-      if (this.keys[rightKey]) mx += 1;
+      let dx = 0;
+      let dy = 0;
+      if (this.keys[upKey]) dy -= 1;
+      if (this.keys[downKey]) dy += 1;
+      if (this.keys[leftKey]) dx -= 1;
+      if (this.keys[rightKey]) dx += 1;
 
-      if (mx !== 0 && my !== 0) {
-        mx *= 0.7071;
-        my *= 0.7071;
+      if (dx !== 0 && dy !== 0) {
+        dx *= 0.7071;
+        dy *= 0.7071;
       }
 
-      player.x += mx * player.speed;
-      player.y += my * player.speed;
+      p.x += dx * p.speed;
+      p.y += dy * p.speed;
     }
 
-    const pad = 24;
-    player.x = Math.max(pad, Math.min(this.canvas.width - pad, player.x));
-    player.y = Math.max(pad, Math.min(this.canvas.height - pad, player.y));
+    // Batas Arena
+    p.x = Math.max(this.arena.left + p.radius, Math.min(this.arena.right - p.radius, p.x));
+    p.y = Math.max(60, Math.min(this.canvas.height - 35, p.y));
 
-    player.angle = Math.atan2(targetY - player.y, targetX - player.x);
+    // Arah Rotasi Hadap Kursor
+    p.angle = Math.atan2(targetY - p.y, targetX - p.x);
 
-    if (player.invulnerableTimer > 0) player.invulnerableTimer--;
+    if (p.invulnerableTimer > 0) p.invulnerableTimer--;
   }
 
+  _updatePlayerRemote(p) {
+    if (p.lives <= 0) return;
+    if (p.invulnerableTimer > 0) p.invulnerableTimer--;
+    if (p.stamina < p.maxStamina && !p.isDodging) {
+      p.stamina = Math.min(p.maxStamina, p.stamina + 0.45);
+    }
+  }
+
+  // ── SPAWN MUSUH BERDASARKAN LEVEL (SEMAKIN TINGGI SEMAKIN SUSAH) ──
+  _spawnEnemyForLevel(level) {
+    const startX = this.arena.left + 30 + Math.random() * (this.arena.width - 60);
+    const startY = -25;
+
+    let type = 'zookeeper';
+    // Level 1: Hanya Zookeeper
+    if (level === 1) {
+      type = 'zookeeper';
+    } else if (level === 2) {
+      type = Math.random() > 0.4 ? 'shooter' : 'zookeeper';
+    } else if (level === 3) {
+      const r = Math.random();
+      type = r > 0.5 ? 'armored' : r > 0.25 ? 'shooter' : 'zookeeper';
+    } else if (level === 4) {
+      const r = Math.random();
+      type = r > 0.6 ? 'sniper' : r > 0.3 ? 'armored' : 'shooter';
+    } else {
+      // Level 5+: Muncul Jeep & musuh kuat
+      const r = Math.random();
+      type = r > 0.6 ? 'jeep' : r > 0.4 ? 'sniper' : 'armored';
+    }
+
+    const enemy = {
+      x: startX,
+      y: startY,
+      type: type,
+      radius: type === 'jeep' ? 26 : 16,
+      speed: type === 'jeep' ? 2.4 : type === 'zookeeper' ? 1.6 : 1.4 + level * 0.08,
+      angle: Math.PI / 2,
+      hp: type === 'jeep' ? 9 : type === 'armored' ? 4 : 2,
+      maxHp: type === 'jeep' ? 9 : type === 'armored' ? 4 : 2,
+      canShoot: type !== 'zookeeper',
+      shootCooldown: 80 + Math.floor(Math.random() * 60),
+      walkCycle: 0
+    };
+
+    this.hunters.push(enemy);
+  }
+
+  // ── SPAWN BOSS UNIK TIAP LEVEL ──
+  _spawnBossForLevel(level) {
+    this.sfx.playExplosion();
+    this._screenShake(25, 7);
+
+    const bossHp = 16 + (level - 1) * 12; // Level 1 = 16 HP, Level 2 = 28 HP...
+    const names = [
+      '👑 GORILLA CAGE MECH (LV.1)',
+      '🚁 COMMANDER HOVERCRAFT (LV.2)',
+      '🛡️ SAFARI HEAVY TANK (LV.3)',
+      '⚡ CYBER MECHA HUNTER (LV.4)',
+      '🔥 TITAN HUNTER FORTRESS (LV.5)'
+    ];
+
+    this.currentBoss = {
+      x: this.canvas.width / 2,
+      y: -60,
+      radius: 36,
+      speed: 1.5 + level * 0.12,
+      hp: bossHp,
+      maxHp: bossHp,
+      name: names[Math.min(level - 1, names.length - 1)],
+      shootCooldown: 90,
+      telegraphTimer: 0,
+      walkCycle: 0
+    };
+
+    this._addFloatingText(this.canvas.width / 2, 90, `⚠️ BOSS INCOMING: ${this.currentBoss.name}!`, '#ff1744', 60);
+  }
+
+  // ── UPDATE MUSUH ──
   _updateHunter(h, index) {
     h.walkCycle += 0.1;
     const targetPlayer = (this.p2 && this.p2.lives > 0 && Math.random() > 0.5) ? this.p2 : this.p1;
@@ -731,33 +798,36 @@ class MonkeyBananaShooter {
     h.x += Math.cos(angleToP) * h.speed * 0.7;
     h.y += Math.sin(angleToP) * h.speed;
 
+    // Musuh Menembak (Level 2+)
     if (h.canShoot) {
       h.shootCooldown--;
       if (h.shootCooldown <= 0) {
-        h.shootCooldown = h.type === 'jeep' ? 80 : 120 + Math.floor(Math.random() * 40);
-        this.sfx.playEnemyShoot();
+        h.shootCooldown = h.type === 'jeep' ? 70 : 120 + Math.floor(Math.random() * 40);
+        this.sfx.playHit();
 
-        const bSpeed = 4.2;
+        const bSpeed = 4.0 + this.wave * 0.15;
         this.hunterBullets.push({
-          x: h.x + Math.cos(h.angle) * 20,
-          y: h.y + Math.sin(h.angle) * 20,
+          x: h.x + Math.cos(h.angle) * 18,
+          y: h.y + Math.sin(h.angle) * 18,
           vx: Math.cos(h.angle) * bSpeed,
           vy: Math.sin(h.angle) * bSpeed,
           radius: 5
         });
 
+        // Jeep menembak 2 peluru menyebar
         if (h.type === 'jeep') {
           this.hunterBullets.push({
-            x: h.x + Math.cos(h.angle + 0.2) * 20,
-            y: h.y + Math.sin(h.angle + 0.2) * 20,
-            vx: Math.cos(h.angle + 0.2) * bSpeed,
-            vy: Math.sin(h.angle + 0.2) * bSpeed,
+            x: h.x + Math.cos(h.angle + 0.25) * 18,
+            y: h.y + Math.sin(h.angle + 0.25) * 18,
+            vx: Math.cos(h.angle + 0.25) * bSpeed,
+            vy: Math.sin(h.angle + 0.25) * bSpeed,
             radius: 5
           });
         }
       }
     }
 
+    // Tabrakan Musuh dengan Pemain
     [this.p1, this.p2].forEach(p => {
       if (!p || p.lives <= 0) return;
       const d = Math.hypot(h.x - p.x, h.y - p.y);
@@ -765,14 +835,15 @@ class MonkeyBananaShooter {
         if (p.invulnerableTimer === 0) {
           this._damagePlayer(p, 1);
         }
-        // Always push enemy back so it doesn't overlap or spam damage
+        // PENTALKAN MUSUH AGAR TIDAK MENEMPEL DAN TIDAK SPAM DAMAGE!
         const pushAngle = Math.atan2(h.y - p.y, h.x - p.x);
-        h.x += Math.cos(pushAngle) * 45;
-        h.y += Math.sin(pushAngle) * 45;
+        h.x += Math.cos(pushAngle) * 50;
+        h.y += Math.sin(pushAngle) * 50;
       }
     });
   }
 
+  // ── UPDATE BOSS ──
   _updateBoss(boss) {
     boss.walkCycle += 0.08;
     const targetPlayer = (this.p2 && this.p2.lives > 0 && Math.random() > 0.5) ? this.p2 : this.p1;
@@ -782,28 +853,30 @@ class MonkeyBananaShooter {
     if (boss.y < 115) {
       boss.y += boss.speed * 1.2;
     } else {
-      boss.x += Math.sin(Date.now() * 0.0018) * boss.speed * 1.6;
+      boss.x += Math.sin(Date.now() * 0.0018) * boss.speed * 1.5;
       boss.y += Math.cos(Date.now() * 0.0025) * boss.speed * 0.5;
     }
 
     boss.shootCooldown--;
     if (boss.shootCooldown <= 25) {
-      boss.telegraphTimer = 25;
+      boss.telegraphTimer = 25; // Garis laser peringatan sebelum nembak
     }
 
     if (boss.shootCooldown <= 0) {
-      boss.shootCooldown = 110;
-      this.sfx.playEnemyShoot();
+      boss.shootCooldown = Math.max(65, 110 - this.wave * 6);
+      boss.telegraphTimer = 0;
+      this.sfx.playHit();
 
-      [-0.25, 0, 0.25].forEach(spread => {
+      // Boss Tembak 5 Peluru Menyebar
+      for (let a = -0.5; a <= 0.5; a += 0.25) {
         this.hunterBullets.push({
-          x: boss.x + Math.cos(boss.angle + spread) * 32,
-          y: boss.y + Math.sin(boss.angle + spread) * 32,
-          vx: Math.cos(boss.angle + spread) * 3.4,
-          vy: Math.sin(boss.angle + spread) * 3.4,
-          radius: 7
+          x: boss.x + Math.cos(boss.angle + a) * 25,
+          y: boss.y + Math.sin(boss.angle + a) * 25,
+          vx: Math.cos(boss.angle + a) * 3.8,
+          vy: Math.sin(boss.angle + a) * 3.8,
+          radius: 6
         });
-      });
+      }
     }
 
     [this.p1, this.p2].forEach(p => {
@@ -813,14 +886,15 @@ class MonkeyBananaShooter {
         if (p.invulnerableTimer === 0) {
           this._damagePlayer(p, 1);
         }
-        // Push player safely away from boss
+        // Dorong pemain menjauh dari boss
         const pushAngle = Math.atan2(p.y - boss.y, p.x - boss.x);
-        p.x = Math.max(this.street.left + 25, Math.min(this.street.right - 25, p.x + Math.cos(pushAngle) * 45));
-        p.y = Math.max(60, Math.min(this.canvas.height - 40, p.y + Math.sin(pushAngle) * 45));
+        p.x = Math.max(this.arena.left + 25, Math.min(this.arena.right - 25, p.x + Math.cos(pushAngle) * 50));
+        p.y = Math.max(60, Math.min(this.canvas.height - 40, p.y + Math.sin(pushAngle) * 50));
       }
     });
   }
 
+  // ── UPDATE PELURU PISANG ──
   _updateBananas() {
     for (let i = this.bananas.length - 1; i >= 0; i--) {
       const b = this.bananas[i];
@@ -828,30 +902,32 @@ class MonkeyBananaShooter {
       b.y += b.vy;
       b.rotation += b.rotSpeed;
 
-      if (b.x < -30 || b.x > this.canvas.width + 30 || b.y < -30 || b.y > this.canvas.height + 30) {
+      if (b.x < -20 || b.x > this.canvas.width + 20 || b.y < -20 || b.y > this.canvas.height + 20) {
         this.bananas.splice(i, 1);
         continue;
       }
 
+      // Hit Boss
       if (this.currentBoss) {
         const d = Math.hypot(b.x - this.currentBoss.x, b.y - this.currentBoss.y);
         if (d < b.radius + this.currentBoss.radius) {
           this.shotsHit++;
           this.currentBoss.hp -= b.damage;
           this.sfx.playHit();
-          this._spawnParticles(b.x, b.y, '#00e5ff', 8);
+          this._spawnParticles(b.x, b.y, '#ffd600', 8);
           this._addFloatingText(this.currentBoss.x, this.currentBoss.y - 20, `-${b.damage}`, '#ffeb3b', 18);
 
           if (b.isExplosive) this._triggerExplosion(b.x, b.y, 65, 3);
 
           if (this.currentBoss.hp <= 0) {
-            this.score += 2000 * this.wave;
-            this._screenShake(25, 6);
+            this.score += 2500 * this.wave;
+            this._screenShake(25, 7);
             this.sfx.playExplosion();
-            this._spawnParticles(this.currentBoss.x, this.currentBoss.y, '#ff007f', 35);
-            this._addFloatingText(this.currentBoss.x, this.currentBoss.y, '🏆 BOSS CLEARED!', '#00e5ff', 45);
+            this._spawnParticles(this.currentBoss.x, this.currentBoss.y, '#ffd600', 35);
+            this._addFloatingText(this.currentBoss.x, this.currentBoss.y, '🏆 BOSS DEFEATED!', '#76ff03', 50);
 
-            for (let g = 0; g < 7; g++) {
+            // Drop Hadiah Banyak!
+            for (let g = 0; g < 8; g++) {
               this.itemDrops.push({
                 type: 'gem',
                 x: this.currentBoss.x + (Math.random() - 0.5) * 60,
@@ -870,7 +946,7 @@ class MonkeyBananaShooter {
                 this.wave++;
                 this._startWave(this.wave);
               }
-            }, 1200);
+            }, 1400);
           }
 
           this.bananas.splice(i, 1);
@@ -878,6 +954,7 @@ class MonkeyBananaShooter {
         }
       }
 
+      // Hit Enemies
       for (let j = this.hunters.length - 1; j >= 0; j--) {
         const h = this.hunters[j];
         const d = Math.hypot(b.x - h.x, b.y - h.y);
@@ -885,14 +962,14 @@ class MonkeyBananaShooter {
           this.shotsHit++;
           h.hp -= b.damage;
           this.sfx.playHit();
-          this._spawnParticles(h.x, h.y, '#00e5ff', 7);
+          this._spawnParticles(h.x, h.y, '#ffd600', 6);
           this._addFloatingText(h.x, h.y - 15, `-${b.damage}`, '#ffeb3b', 16);
 
           if (b.isExplosive) this._triggerExplosion(b.x, b.y, 55, 3);
 
           if (h.hp <= 0) {
-            this.score += (h.type === 'jeep' ? 400 : 150) * this.wave;
-            this._spawnParticles(h.x, h.y, h.type === 'jeep' ? '#ff007f' : '#00e5ff', 15);
+            this.score += (h.type === 'jeep' ? 500 : 180) * this.wave;
+            this._spawnParticles(h.x, h.y, h.type === 'jeep' ? '#ff5722' : '#76ff03', 16);
             if (h.type === 'jeep') this.sfx.playExplosion();
 
             this._dropRandomItem(h.x, h.y);
@@ -908,8 +985,8 @@ class MonkeyBananaShooter {
 
   _triggerExplosion(x, y, radius, damage) {
     this.sfx.playExplosion();
-    this._screenShake(16, 4);
-    this._spawnParticles(x, y, '#ff007f', 22);
+    this._screenShake(16, 5);
+    this._spawnParticles(x, y, '#ff007f', 24);
 
     this.hunters.forEach(h => {
       if (Math.hypot(h.x - x, h.y - y) < radius + h.radius) h.hp -= damage;
@@ -919,6 +996,7 @@ class MonkeyBananaShooter {
     }
   }
 
+  // ── UPDATE PELURU MUSUH ──
   _updateHunterBullets() {
     for (let i = this.hunterBullets.length - 1; i >= 0; i--) {
       const hb = this.hunterBullets[i];
@@ -935,12 +1013,27 @@ class MonkeyBananaShooter {
         const d = Math.hypot(hb.x - p.x, hb.y - p.y);
         if (d < hb.radius + p.radius) {
           this.hunterBullets.splice(i, 1);
-          // Hanya kena jika tidak dalam perlindungan shield!
+          // HANYA TERKENA HIT JIKA TIDAK SEDANG KEBAL (SHIELD HABIS)
           if (p.invulnerableTimer === 0) {
             this._damagePlayer(p, 1);
           }
         }
       });
+    }
+  }
+
+  // ── RANDOM ITEM DROPS ──
+  _dropRandomItem(x, y) {
+    const r = Math.random();
+    if (r < 0.28) {
+      // 28% drop Gems
+      this.itemDrops.push({ type: 'gem', x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
+    } else if (r < 0.45) {
+      // 17% drop Ammo
+      this.itemDrops.push({ type: 'ammo', x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
+    } else if (r < 0.58) {
+      // 13% drop Medkit / Heart
+      this.itemDrops.push({ type: 'health', x, y, life: 600, floatOffset: Math.random() * Math.PI * 2 });
     }
   }
 
@@ -960,19 +1053,15 @@ class MonkeyBananaShooter {
           if (item.type === 'gem') {
             this.gemsCollected++;
             this.sfx.playPickup('gem');
-            this._addFloatingText(item.x, item.y - 15, '+1 GEM 💎', '#00e5ff', 22);
+            this._addFloatingText(item.x, item.y - 15, '+1 GEM 💎', '#00e5ff', 24);
           } else if (item.type === 'ammo') {
             p.ammoStock = Math.min(250, p.ammoStock + 24);
             this.sfx.playPickup('ammo');
-            this._addFloatingText(item.x, item.y - 15, '+24 AMMO 🔋', '#ffeb3b', 22);
+            this._addFloatingText(item.x, item.y - 15, '+24 PISANG 🍌', '#ffd600', 24);
           } else if (item.type === 'health') {
             p.lives = Math.min(p.maxLives, p.lives + 1);
             this.sfx.playPickup('health');
-            this._addFloatingText(item.x, item.y - 15, '+1 HEART ❤️', '#ff007f', 22);
-          } else if (item.type === 'stamina') {
-            p.stamina = p.maxStamina;
-            this.sfx.playPickup('ammo');
-            this._addFloatingText(item.x, item.y - 15, 'MAX SHIELD ⚡', '#00e5ff', 22);
+            this._addFloatingText(item.x, item.y - 15, '+1 HEART ❤️', '#ff007f', 26);
           }
           this.itemDrops.splice(i, 1);
         }
@@ -980,7 +1069,7 @@ class MonkeyBananaShooter {
     }
   }
 
-  // ── SISTEM NYAWA: HANYA HILANG 1 HATI DENGAN SHIELD PERLINDUNGAN LAMA ──
+  // ── SISTEM NYAWA: HANYA HILANG 1 HATI, KEBAL 2 DETIK, DAN HANYA MATI JIKA 0! ──
   _damagePlayer(p, amount = 1) {
     if (p.lives <= 0 || p.invulnerableTimer > 0) return;
 
@@ -996,7 +1085,7 @@ class MonkeyBananaShooter {
     // HANYA MATI JIKA SELURUH NYAWA TEPAT <= 0!
     if (p.lives <= 0) {
       p.lives = 0;
-      this._addFloatingText(p.x, p.y - 45, 'UNIT DOWN 💥', '#ff1744', 45);
+      this._addFloatingText(p.x, p.y - 45, 'MONKEY DOWN 💥', '#ff1744', 45);
     }
   }
 
@@ -1022,7 +1111,7 @@ class MonkeyBananaShooter {
         vx: Math.cos(ang) * spd,
         vy: Math.sin(ang) * spd,
         color,
-        size: 2.5 + Math.random() * 3.5,
+        size: 3 + Math.random() * 3,
         life: 20 + Math.floor(Math.random() * 12)
       });
     }
@@ -1048,11 +1137,7 @@ class MonkeyBananaShooter {
     }
   }
 
-  get accuracy() {
-    return this.shotsFired > 0 ? Math.round((this.shotsHit / this.shotsFired) * 100) : 0;
-  }
-
-  // ─────────────────────────── CYBERPUNK NEO-PIXEL RENDERING ───────────────────────────
+  // ─────────────────────────── COLORFUL PIXEL ART RENDERING ───────────────────────────
   _draw() {
     const ctx = this.ctx;
     const W = this.canvas.width;
@@ -1066,44 +1151,36 @@ class MonkeyBananaShooter {
       ctx.translate(sx, sy);
     }
 
-    // 1. Cyberpunk Street & Mart Background (Matching reference screenshot)
-    this._drawCyberStreetBackground(ctx, W, H);
+    // 1. Gambar Background Hutan Tropis Colorful
+    this._drawColorfulJungle(ctx, W, H);
 
     // 2. Item Drops
-    this.itemDrops.forEach(item => {
-      this._drawCyberItemDrop(ctx, item);
-    });
+    this.itemDrops.forEach(it => this._drawItemDrop(ctx, it));
 
     // 3. Enemies
-    this.hunters.forEach(h => {
-      this._drawCyberEnemy(ctx, h);
-    });
+    this.hunters.forEach(h => this._drawColorfulEnemy(ctx, h));
 
     // 4. Boss
-    if (this.currentBoss) {
-      this._drawCyberBoss(ctx, this.currentBoss);
-    }
+    if (this.currentBoss) this._drawColorfulBoss(ctx, this.currentBoss);
 
-    // 5. Enemy Laser Bullets
+    // 5. Enemy Bullets
     this.hunterBullets.forEach(b => {
       ctx.save();
-      ctx.shadowColor = '#ff007f';
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = '#ff007f';
+      ctx.fillStyle = '#ff1744';
+      ctx.shadowColor = '#ff1744';
+      ctx.shadowBlur = 8;
       ctx.fillRect(b.x - 3, b.y - 3, 6, 6);
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#ffff00';
       ctx.fillRect(b.x - 1, b.y - 1, 2, 2);
       ctx.restore();
     });
 
-    // 6. Glowing Plasma Bananas
-    this.bananas.forEach(b => {
-      this._drawPlasmaBanana(ctx, b);
-    });
+    // 6. Bananas (Golden Spinning Projectiles)
+    this.bananas.forEach(b => this._drawGoldenBanana(ctx, b));
 
-    // 7. Players (Cyber Monkey with Energy Weapon)
-    if (this.p1.lives > 0) this._drawCyberMonkey(ctx, this.p1);
-    if (this.p2 && this.p2.lives > 0) this._drawCyberMonkey(ctx, this.p2);
+    // 7. Players (P1 & P2 Pixel Monkey)
+    if (this.p1.lives > 0) this._drawPixelMonkey(ctx, this.p1);
+    if (this.p2 && this.p2.lives > 0) this._drawPixelMonkey(ctx, this.p2);
 
     // 8. Particles
     this.particles.forEach(p => {
@@ -1111,405 +1188,332 @@ class MonkeyBananaShooter {
       ctx.fillRect(Math.floor(p.x), Math.floor(p.y), Math.floor(p.size), Math.floor(p.size));
     });
 
-    // 9. Floating texts
+    // 9. Floating Texts
     this.floatingTexts.forEach(ft => {
       ctx.save();
       ctx.fillStyle = ft.color;
       ctx.font = 'bold 13px "Courier New", monospace';
       ctx.textAlign = 'center';
       ctx.shadowColor = '#000';
-      ctx.shadowBlur = 5;
+      ctx.shadowBlur = 4;
       ctx.fillText(ft.text, ft.x, ft.y);
       ctx.restore();
     });
 
     ctx.restore();
 
-    // 10. Cyberpunk Boss Bar
+    // 10. Boss Health Bar
     if (this.currentBoss) {
-      this._drawCyberBossHud(ctx, W, this.currentBoss);
+      this._drawBossHud(ctx, W, this.currentBoss);
     }
   }
 
-  // ── CYBERPUNK STREET BACKGROUND (TILED SIDEWALKS, NEON SIGNS, WEFCO MART) ──
-  _drawCyberStreetBackground(ctx, W, H) {
-    // 1. Dark Indigo/Purple Night Foundation
-    ctx.fillStyle = '#0f0e1c';
-    ctx.fillRect(0, 0, W, H);
-
-    const sLeft = this.street.left;
-    const sRight = this.street.right;
-    const sWidth = this.street.width;
-
-    // 2. Central Paved Cyber Street / Plaza (Tiled Sidewalk Grid like Screenshot)
-    const streetGrad = ctx.createLinearGradient(sLeft, 0, sRight, 0);
-    streetGrad.addColorStop(0, '#1c1b30');
-    streetGrad.addColorStop(0.5, '#282747');
-    streetGrad.addColorStop(1, '#1c1b30');
-    ctx.fillStyle = streetGrad;
-    ctx.fillRect(sLeft, 0, sWidth, H);
-
-    // Checkered Tile Pattern (Like screenshot pavement tiles)
+  // ── BACKGROUND HUTAN TROPIS COLORFUL DENGAN TROTOAR BATU & SUNGAI ──
+  _drawColorfulJungle(ctx, W, H) {
+    // 1. Rumput Hijau Cerah Berlapis Kotak-kotak (Pixel Checkerboard)
     const tileSize = 20;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-    for (let x = sLeft; x < sRight; x += tileSize) {
+    for (let x = 0; x < W; x += tileSize) {
       for (let y = 0; y < H; y += tileSize) {
-        if ((Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0) {
-          ctx.fillRect(x, y, tileSize, tileSize);
-        }
+        const isEven = (Math.floor(x / tileSize) + Math.floor(y / tileSize)) % 2 === 0;
+        ctx.fillStyle = isEven ? '#2e7d32' : '#388e3c';
+        ctx.fillRect(x, y, tileSize, tileSize);
       }
     }
 
-    // Right-Side Cracked Dune / Wasteland Outpost (Matching Reference Screenshot)
-    ctx.save();
-    ctx.fillStyle = '#262238';
-    ctx.fillRect(sRight, 0, W - sRight, H);
-    // Sandy cracked polygon overlay
-    ctx.fillStyle = '#453a54';
+    const aLeft = this.arena.left;
+    const aRight = this.arena.right;
+    const aWidth = this.arena.width;
+
+    // 2. Jalur Trotoar Batu Alam Hangat (Warm Cobblestone Path)
+    ctx.fillStyle = '#8d6e63';
+    ctx.fillRect(aLeft, 0, aWidth, H);
+
+    // Pola Batu Cobblestone
+    ctx.fillStyle = '#a1887f';
+    for (let x = aLeft + 6; x < aRight - 10; x += 22) {
+      for (let y = 5; y < H; y += 18) {
+        ctx.fillRect(x, y, 18, 14);
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, 18, 14);
+      }
+    }
+
+    // Pinggiran Trotoar (Pita Emas & Lumut)
+    ctx.fillStyle = '#ffd54f';
+    ctx.fillRect(aLeft, 0, 4, H);
+    ctx.fillRect(aRight - 4, 0, 4, H);
+
+    // 3. Sungai Biru Berkilau di Sisi Kanan (Crystal Stream)
+    ctx.fillStyle = '#00b0ff';
+    ctx.fillRect(aRight + 15, 0, W - (aRight + 15), H);
+    // Gelombang air
+    ctx.fillStyle = '#80d8ff';
+    for (let y = 10; y < H; y += 30) {
+      ctx.fillRect(aRight + 25, y, 40, 4);
+      ctx.fillRect(aRight + 45, y + 14, 30, 3);
+    }
+    // Teratai / Bunga Air
+    ctx.fillStyle = '#ff4081';
     ctx.beginPath();
-    ctx.moveTo(sRight + 5, 40);
-    ctx.bezierCurveTo(sRight + 25, 80, sRight + 15, 160, sRight + 30, 220);
-    ctx.bezierCurveTo(sRight + 45, 280, sRight + 10, 360, sRight + 35, H);
-    ctx.lineTo(W, H);
-    ctx.lineTo(W, 40);
-    ctx.closePath();
+    ctx.arc(aRight + 40, 110, 6, 0, Math.PI * 2);
+    ctx.arc(aRight + 65, 270, 7, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cracked ground lines
-    ctx.strokeStyle = '#2b2236';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(sRight + 40, 80); ctx.lineTo(sRight + 75, 110); ctx.lineTo(sRight + 60, 140);
-    ctx.moveTo(sRight + 55, 120); ctx.lineTo(sRight + 90, 130);
-    ctx.moveTo(sRight + 30, 240); ctx.lineTo(sRight + 70, 270); ctx.lineTo(sRight + 85, 250);
-    ctx.stroke();
-
-    // Wall Retaining Border with "soul LiNk v2.1" Graffiti
-    ctx.fillStyle = '#181628';
-    ctx.fillRect(sRight - 2, 40, 8, 120);
-    ctx.shadowColor = '#00e5ff';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#00e5ff';
-    ctx.font = 'bold 11px "Courier New", monospace';
-    ctx.fillText('soul LiNk v2.1', sRight + 16, 75);
-    ctx.shadowBlur = 0;
-    ctx.restore();
-
-    // Street Curbs & Neon Guide Stripes
-    ctx.fillStyle = '#00e5ff';
-    ctx.shadowColor = '#00e5ff';
-    ctx.shadowBlur = 6;
-    ctx.fillRect(sLeft, 0, 3, H);
-    ctx.fillRect(sRight - 3, 0, 3, H);
-    ctx.shadowBlur = 0;
-
-    // Decal Stairs (Like screenshot central stair flights)
-    ctx.fillStyle = '#161529';
-    ctx.fillRect(sLeft + 20, 160, sWidth - 40, 35);
-    ctx.fillRect(sLeft + 20, 310, sWidth - 40, 35);
-    ctx.fillStyle = '#39375e';
-    for (let st = 160; st <= 190; st += 7) ctx.fillRect(sLeft + 20, st, sWidth - 40, 2);
-    for (let st = 310; st <= 340; st += 7) ctx.fillRect(sLeft + 20, st, sWidth - 40, 2);
-
-    // 3. Cyber Shopfronts (Left & Right Outposts)
-    const p = this.street.shops;
-
-    // Left Shops: WEFCO MART & YOKU FORGE
-    p.leftBuildings.forEach(b => {
-      ctx.fillStyle = b.color;
-      ctx.fillRect(b.x, b.y, b.w, b.h);
-      ctx.strokeStyle = '#3d3868';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(b.x, b.y, b.w, b.h);
-
-      // Neon Signboard
-      ctx.save();
-      ctx.fillStyle = '#0a0914';
-      ctx.fillRect(b.x + 8, b.y + 10, b.w - 16, 22);
-      ctx.shadowColor = b.signColor;
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = b.signColor;
-      ctx.font = 'bold 10px "Courier New", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(b.name, b.x + b.w / 2, b.y + 24);
-      ctx.restore();
+    // 4. Bunga-bunga Liar Tropis Penuh Warna
+    const dec = this.arena.decorations;
+    dec.flowers.forEach(fl => {
+      ctx.fillStyle = fl.color;
+      ctx.beginPath();
+      ctx.arc(fl.x, fl.y, fl.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(fl.x - 1, fl.y - 1, 2, 2);
     });
 
-    // Right Shops: SOUL LINK & TORII TECH
-    p.rightBuildings.forEach(b => {
-      ctx.fillStyle = b.color;
-      ctx.fillRect(b.x, b.y, b.w, b.h);
-      ctx.strokeStyle = '#3d3868';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(b.x, b.y, b.w, b.h);
+    // 5. Pilar Kuno Rimba dengan Permata Menyala
+    dec.ancientPillars.forEach(p => {
+      ctx.fillStyle = '#4e342e';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.strokeStyle = '#3e2723';
+      ctx.strokeRect(p.x, p.y, p.w, p.h);
 
+      // Permata di tengah pilar
       ctx.save();
-      ctx.fillStyle = '#0a0914';
-      ctx.fillRect(b.x + 8, b.y + 10, b.w - 16, 22);
-      ctx.shadowColor = b.signColor;
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = b.signColor;
-      ctx.font = 'bold 10px "Courier New", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(b.name, b.x + b.w / 2, b.y + 24);
+      ctx.shadowColor = p.gem;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = p.gem;
+      ctx.fillRect(p.x + p.w / 2 - 4, p.y + 12, 8, 8);
       ctx.restore();
     });
-
-    // Vending Machines & Street Lanterns
-    p.vendingMachines.forEach(v => {
-      ctx.save();
-      ctx.fillStyle = '#1c1b30';
-      ctx.fillRect(v.x, v.y, 16, 26);
-      ctx.shadowColor = v.color;
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = v.color;
-      ctx.fillRect(v.x + 3, v.y + 4, 10, 10);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 6px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(v.label, v.x + 8, v.y + 22);
-      ctx.restore();
-    });
-
-    // Overhead Hanging Lantern Strings (Like screenshot)
-    ctx.strokeStyle = '#ff007f';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(sLeft, 85);
-    ctx.quadraticCurveTo(W / 2, 98, sRight, 85);
-    ctx.stroke();
-
-    for (let l = sLeft + 35; l < sRight - 30; l += 40) {
-      const ly = 85 + Math.sin((l - sLeft) / sWidth * Math.PI) * 12;
-      ctx.fillStyle = '#ffeb3b';
-      ctx.shadowColor = '#ffeb3b';
-      ctx.shadowBlur = 6;
-      ctx.fillRect(l, ly, 5, 7);
-      ctx.shadowBlur = 0;
-    }
   }
 
-  // ── CYBER MONKEY (CYBER COAT, GLOWING ENERGY BLADE/BLASTER) ──
-  _drawCyberMonkey(ctx, p) {
+  // ── SPRITE PIXEL MONKEY (LENGKAP DENGAN 5 AVATAR/SKIN COLORFUL) ──
+  _drawPixelMonkey(ctx, p) {
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.angle);
 
-    // 1. Energy Shield Bubble (Jika invulnerable / baru kena hit)
+    // 1. Energy Shield Bubble (Jika sedang kebal setelah kena hit)
     if (p.invulnerableTimer > 0) {
       ctx.save();
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = 14;
-      ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
-      ctx.lineWidth = 2.5;
+      const shieldHue = (Date.now() * 0.4) % 360;
+      ctx.shadowColor = `hsl(${shieldHue}, 100%, 50%)`;
+      ctx.shadowBlur = 15;
+      ctx.strokeStyle = `hsl(${shieldHue}, 100%, 70%)`;
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(0, 0, p.radius + 8, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.fillStyle = 'rgba(0, 229, 255, 0.12)';
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.15)';
       ctx.fill();
       ctx.restore();
     }
 
-    // 2. Cast Shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    // 2. Bayangan Karakter
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
-    ctx.ellipse(0, 3, 16, 12, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 4, 16, 11, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. Cyber Coat Body (Dark Charcoal with Neon Trim)
-    let coatColor = '#212130';
-    let trimColor = '#00e5ff';
+    // 3. Warna Bulu & Kostum Sesuai Skin
+    let furColor = '#795548';
+    let chestColor = '#ffccbc';
+    let accColor = '#ff1744';
 
     if (p.skin === 'ninja') {
-      coatColor = '#121218';
-      trimColor = '#ff007f';
-    } else if (p.skin === 'king') {
-      coatColor = '#2d2038';
-      trimColor = '#ffd700';
+      furColor = '#212121';
+      chestColor = '#424242';
+      accColor = '#ff007f'; // Neon magenta
     } else if (p.skin === 'mecha') {
-      coatColor = '#37474f';
-      trimColor = '#00e5ff';
-    } else if (p.skin === 'chimp_blue') {
-      coatColor = '#1a237e';
-      trimColor = '#40c4ff';
+      furColor = '#00b0ff';
+      chestColor = '#cfd8dc';
+      accColor = '#ffd600';
+    } else if (p.skin === 'king') {
+      furColor = '#ffd700'; // Radiant Gold!
+      chestColor = '#fff9c4';
+      accColor = '#d50000'; // Crown Ruby
+    } else if (p.skin === 'cosmic') {
+      furColor = '#651fff'; // Nebula Violet!
+      chestColor = '#b388ff';
+      accColor = '#00e5ff';
     }
 
-    ctx.fillStyle = coatColor;
+    // Tubuh Monyet
+    ctx.fillStyle = furColor;
     ctx.fillRect(-12, -10, 24, 20);
 
-    // Neon Coat Trim
-    ctx.fillStyle = trimColor;
-    ctx.shadowColor = trimColor;
-    ctx.shadowBlur = 6;
-    ctx.fillRect(-12, -10, 3, 20);
-    ctx.shadowBlur = 0;
+    // Dada & Perut
+    ctx.fillStyle = chestColor;
+    ctx.fillRect(-6, -6, 12, 12);
 
-    // Ears
-    ctx.fillStyle = '#615147';
+    // Telinga Bulat
+    ctx.fillStyle = furColor;
     ctx.fillRect(-4, -14, 6, 4);
     ctx.fillRect(-4, 10, 6, 4);
+    ctx.fillStyle = '#ffab91';
+    ctx.fillRect(-3, -13, 4, 2);
+    ctx.fillRect(-3, 11, 4, 2);
 
-    // Face / Snout
-    ctx.fillStyle = '#c7a38b';
+    // Wajah & Moncong
+    ctx.fillStyle = chestColor;
     ctx.fillRect(4, -6, 10, 12);
 
-    // Glowing Cybernetic Visor / Eyes (Like screenshot character)
-    ctx.fillStyle = trimColor;
-    ctx.shadowColor = trimColor;
-    ctx.shadowBlur = 8;
-    ctx.fillRect(8, -5, 3, 10);
-    ctx.shadowBlur = 0;
+    // Mata Karakter
+    ctx.fillStyle = '#000';
+    ctx.fillRect(8, -4, 3, 3);
+    ctx.fillRect(8, 2, 3, 3);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(8, -4, 1, 1);
+    ctx.fillRect(8, 2, 1, 1);
 
-    // Special Accessories
+    // Aksesoris Spesial
     if (p.skin === 'ninja') {
-      // Flowing red headband
-      ctx.fillStyle = '#ff007f';
-      ctx.fillRect(-14, -6, 4, 12);
+      // Syal Ninja Melambai
+      ctx.fillStyle = accColor;
+      ctx.fillRect(-14, -5, 4, 10);
     } else if (p.skin === 'king') {
-      // Golden Crown
+      // Mahkota Emas Berkilau
       ctx.fillStyle = '#ffd700';
-      ctx.fillRect(1, -6, 5, 12);
+      ctx.fillRect(1, -7, 5, 14);
+      ctx.fillStyle = accColor;
+      ctx.fillRect(4, -1, 3, 3);
+    } else if (p.skin === 'mecha') {
+      // Visor Sibernetik
+      ctx.fillStyle = accColor;
+      ctx.fillRect(8, -4, 3, 9);
     }
 
-    // 4. Glowing Neon Energy Banana Sword / Blaster (Green Beam like screenshot!)
+    // 4. Golden Banana Blaster (Senjata Pisang Emas Menyala!)
     ctx.save();
-    ctx.translate(12, 8);
-    ctx.rotate(0.3);
-
-    ctx.shadowColor = '#00e676';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = '#76ff03';
-    ctx.fillRect(0, -2, 16, 5);
-
-    // White core beam
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(2, -1, 12, 3);
+    ctx.translate(12, 7);
+    ctx.shadowColor = '#ffd600';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#ffd600';
+    ctx.fillRect(0, -3, 15, 6);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(12, -2, 4, 4); // Moncong bersinar
     ctx.restore();
 
     ctx.restore();
   }
 
-  // ── CYBER ENEMIES (PATROL DRONES, LASER HUNTERS, HOVER-JEEP) ──
-  _drawCyberEnemy(ctx, h) {
+  // ── SPRITE MUSUH COLORFUL BERDASARKAN TIPE ──
+  _drawColorfulEnemy(ctx, h) {
     ctx.save();
     ctx.translate(h.x, h.y);
     ctx.rotate(h.angle);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.beginPath();
-    ctx.ellipse(0, 3, h.radius * 0.9, h.radius * 0.7, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 2, h.radius, h.radius * 0.7, 0, 0, Math.PI * 2);
     ctx.fill();
 
     if (h.type === 'zookeeper') {
-      // Sector Guard (Dark Tactical Armor with Stun-Net)
-      ctx.fillStyle = '#1e382b';
+      // ZOOKEEPER: Baju safari khaki + Topi rimba + Jaring kupu-kupu besar!
+      ctx.fillStyle = '#c5a059';
       ctx.fillRect(-10, -9, 20, 18);
-      ctx.fillStyle = '#3a5f49';
-      ctx.fillRect(-7, -7, 14, 14);
-
-      // Neon Visor
-      ctx.fillStyle = '#00e676';
-      ctx.shadowColor = '#00e676';
-      ctx.shadowBlur = 6;
-      ctx.fillRect(5, -4, 3, 8);
-      ctx.shadowBlur = 0;
-
-      // Electric Stun Net
+      // Topi
+      ctx.fillStyle = '#558b2f';
+      ctx.fillRect(-12, -12, 16, 24);
+      // Jaring Penangkap
+      ctx.strokeStyle = '#80d8ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(14, 8, 10, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (h.type === 'shooter') {
+      // DART HUNTER: Jaket merah menyala + Kacamata goggle hijau
+      ctx.fillStyle = '#e53935';
+      ctx.fillRect(-10, -9, 20, 18);
+      // Senapan
+      ctx.fillStyle = '#212121';
+      ctx.fillRect(4, 5, 16, 4);
+      // Goggle
+      ctx.fillStyle = '#76ff03';
+      ctx.fillRect(6, -4, 3, 8);
+    } else if (h.type === 'armored') {
+      // ARMORED GUARD: Pelindung tameng baja cyan transparan
+      ctx.fillStyle = '#1565c0';
+      ctx.fillRect(-11, -10, 22, 20);
+      // Tameng
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.65)';
       ctx.strokeStyle = '#00e5ff';
       ctx.lineWidth = 2;
-      ctx.strokeRect(10, 4, 10, 8);
-    } else if (h.type === 'hunter') {
-      // Cyber Sniper (Trenchcoat + Red Laser Rifle)
-      ctx.fillStyle = '#2b1f33';
-      ctx.fillRect(-10, -9, 20, 18);
-      ctx.fillStyle = '#4a3258';
-      ctx.fillRect(-6, -6, 12, 12);
-
-      // Red Laser Sight Rifle
-      ctx.fillStyle = '#212121';
-      ctx.fillRect(2, 6, 22, 4);
-      ctx.fillStyle = '#ff007f';
-      ctx.shadowColor = '#ff007f';
-      ctx.shadowBlur = 6;
-      ctx.fillRect(18, 7, 8, 2);
-      ctx.shadowBlur = 0;
-    } else if (h.type === 'jeep') {
-      // Hover-Jeep (Anti-Grav Thrusters + Heavy Plating)
-      ctx.fillStyle = '#00e5ff';
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = 8;
-      // 4 Glowing Hover Pads
-      ctx.fillRect(-16, -17, 8, 5);
-      ctx.fillRect(8, -17, 8, 5);
-      ctx.fillRect(-16, 12, 8, 5);
-      ctx.fillRect(8, 12, 8, 5);
-      ctx.shadowBlur = 0;
-
-      // Chassis
-      ctx.fillStyle = '#1c1b30';
-      ctx.fillRect(-16, -13, 32, 26);
-      ctx.strokeStyle = '#ff007f';
+      ctx.fillRect(10, -12, 6, 24);
+      ctx.strokeRect(10, -12, 6, 24);
+    } else if (h.type === 'sniper') {
+      // COMMANDER SNIPER: Jubah loreng & garis laser bidik merah
+      ctx.fillStyle = '#33691e';
+      ctx.fillRect(-10, -8, 20, 16);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(4, 4, 20, 3);
+      // Laser bidik
+      ctx.strokeStyle = 'rgba(255, 23, 68, 0.5)';
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(-16, -13, 32, 26);
-
-      // Gradient Windshield
-      ctx.fillStyle = '#00e5ff';
-      ctx.fillRect(6, -9, 6, 18);
+      ctx.beginPath();
+      ctx.moveTo(24, 5);
+      ctx.lineTo(160, 5);
+      ctx.stroke();
+    } else if (h.type === 'jeep') {
+      // SAFARI JEEP: Mobil off-road kuning cerah + 4 roda hitam
+      ctx.fillStyle = '#ff8f00';
+      ctx.fillRect(-22, -14, 44, 28);
+      // Kap & Kaca Depan
+      ctx.fillStyle = '#80d8ff';
+      ctx.fillRect(2, -10, 10, 20);
+      // 4 Roda Berputar
+      ctx.fillStyle = '#212121';
+      ctx.fillRect(-18, -17, 10, 4);
+      ctx.fillRect(8, -17, 10, 4);
+      ctx.fillRect(-18, 13, 10, 4);
+      ctx.fillRect(8, 13, 10, 4);
+      // Lampu Depan Kuning Terang
+      ctx.fillStyle = '#ffeb3b';
+      ctx.fillRect(22, -9, 3, 5);
+      ctx.fillRect(22, 4, 3, 5);
     }
 
     ctx.restore();
-
-    if (h.maxHp > 1) {
-      const bw = 24;
-      const bx = h.x - bw / 2;
-      const by = h.y - h.radius - 8;
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fillRect(bx, by, bw, 4);
-      ctx.fillStyle = '#00e676';
-      ctx.fillRect(bx, by, (h.hp / h.maxHp) * bw, 4);
-    }
   }
 
-  // ── CYBER BOSS ──
-  _drawCyberBoss(ctx, boss) {
+  // ── SPRITE BOSS COLORFUL TIAP LEVEL ──
+  _drawColorfulBoss(ctx, boss) {
     ctx.save();
     ctx.translate(boss.x, boss.y);
     ctx.rotate(boss.angle);
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
     ctx.beginPath();
-    ctx.ellipse(0, 5, boss.radius * 1.1, boss.radius * 0.9, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 4, boss.radius + 6, boss.radius * 0.7, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Heavy Plated Mech Tank
-    ctx.fillStyle = '#1a102b';
-    ctx.fillRect(-26, -24, 52, 48);
-    ctx.strokeStyle = '#ff007f';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(-26, -24, 52, 48);
+    // Bodi Utama Mech Boss
+    ctx.fillStyle = '#d50000';
+    ctx.fillRect(-28, -24, 56, 48);
+    ctx.strokeStyle = '#ffd600';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(-28, -24, 56, 48);
 
-    // Glowing Reactor Core
-    ctx.shadowColor = '#00e5ff';
-    ctx.shadowBlur = 12;
-    ctx.fillStyle = '#00e5ff';
+    // Inti Energi Tengah
+    ctx.fillStyle = '#ffd600';
     ctx.beginPath();
     ctx.arc(0, 0, 12, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
 
-    // Dual Plasma Cannons
+    // Meriam Ganda Kiri & Kanan
     ctx.fillStyle = '#212121';
-    ctx.fillRect(16, -10, 24, 6);
-    ctx.fillRect(16, 4, 24, 6);
+    ctx.fillRect(18, -14, 24, 7);
+    ctx.fillRect(18, 7, 24, 7);
 
     // Laser Telegraph
     if (boss.telegraphTimer > 0) {
-      ctx.strokeStyle = 'rgba(255, 0, 127, 0.7)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(255, 23, 68, 0.75)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
       ctx.beginPath();
-      ctx.moveTo(38, 0);
-      ctx.lineTo(260, 0);
+      ctx.moveTo(42, 0);
+      ctx.lineTo(300, 0);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -1517,68 +1521,57 @@ class MonkeyBananaShooter {
     ctx.restore();
   }
 
-  _drawCyberBossHud(ctx, W, boss) {
-    const barW = 320;
+  _drawBossHud(ctx, W, boss) {
+    const barW = 340;
     const barH = 14;
     const barX = W / 2 - barW / 2;
     const barY = 16;
 
-    ctx.fillStyle = 'rgba(15, 14, 28, 0.9)';
+    ctx.fillStyle = 'rgba(10, 20, 10, 0.9)';
     ctx.fillRect(barX - 4, barY - 4, barW + 8, barH + 8);
-    ctx.strokeStyle = '#ff007f';
+    ctx.strokeStyle = '#ff1744';
     ctx.lineWidth = 2;
     ctx.strokeRect(barX - 4, barY - 4, barW + 8, barH + 8);
 
     const hpPct = Math.max(0, boss.hp / boss.maxHp);
-    ctx.fillStyle = '#ff007f';
-    ctx.shadowColor = '#ff007f';
-    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#ff1744';
     ctx.fillRect(barX, barY, barW * hpPct, barH);
-    ctx.shadowBlur = 0;
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px "Courier New", monospace';
+    ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(`${boss.name} [HP: ${Math.ceil(boss.hp)} / ${boss.maxHp}]`, W / 2, barY + 11);
   }
 
-  // ── GLOWING PLASMA BANANA ──
-  _drawPlasmaBanana(ctx, b) {
+  // ── PELURU PISANG EMAS BERPUTAR ──
+  _drawGoldenBanana(ctx, b) {
     ctx.save();
     ctx.translate(b.x, b.y);
     ctx.rotate(b.rotation);
 
-    if (b.isExplosive) {
-      ctx.shadowColor = '#ff007f';
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = '#ff007f';
-      ctx.fillRect(-8, -4, 16, 8);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-4, -2, 8, 4);
-    } else {
-      ctx.shadowColor = '#00e676';
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = '#76ff03';
-      ctx.fillRect(-7, -3, 14, 6);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-3, -1, 6, 2);
-    }
+    ctx.shadowColor = '#ffd600';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#ffea00';
+    // Bentuk Pisang Melengkung
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0.2, Math.PI - 0.2, false);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#ffd600';
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-2, -2, 4, 4);
 
     ctx.restore();
   }
 
-  // ── CYBER ITEM DROPS (HOLOGRAPHIC GEMS, BATTERIES, NANO-MEDS) ──
-  _drawCyberItemDrop(ctx, item) {
-    const bob = Math.sin(Date.now() * 0.005 + item.floatOffset) * 4;
+  // ── ITEM DROPS BERKILAU (DIAMOND, HEART, AMMO) ──
+  _drawItemDrop(ctx, item) {
+    const bob = Math.sin(Date.now() * 0.006 + item.floatOffset) * 4;
     const x = item.x;
     const y = item.y + bob;
 
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.beginPath();
-    ctx.ellipse(x, item.y + 10, 8, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
     if (item.type === 'gem') {
       ctx.shadowColor = '#00e5ff';
       ctx.shadowBlur = 10;
@@ -1590,34 +1583,24 @@ class MonkeyBananaShooter {
       ctx.lineTo(x - 7, y - 2);
       ctx.closePath();
       ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(x - 2, y - 2, 4, 4);
     } else if (item.type === 'ammo') {
-      ctx.shadowColor = '#ffd700';
+      ctx.shadowColor = '#ffd600';
       ctx.shadowBlur = 8;
-      ctx.fillStyle = '#ffd700';
-      ctx.fillRect(x - 7, y - 6, 14, 12);
-      ctx.fillStyle = '#000000';
+      ctx.fillStyle = '#ffd600';
+      ctx.fillRect(x - 6, y - 6, 12, 12);
+      ctx.fillStyle = '#fff';
       ctx.fillRect(x - 2, y - 4, 4, 8);
     } else if (item.type === 'health') {
-      ctx.shadowColor = '#ff007f';
+      ctx.shadowColor = '#ff1744';
       ctx.shadowBlur = 10;
-      ctx.fillStyle = '#ff007f';
+      ctx.fillStyle = '#ff1744';
       ctx.fillRect(x - 6, y - 2, 12, 4);
       ctx.fillRect(x - 2, y - 6, 4, 12);
-    } else if (item.type === 'stamina') {
-      ctx.shadowColor = '#00e5ff';
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = '#00e5ff';
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fill();
     }
-
     ctx.restore();
   }
 
-  // ── GAME LOOP ──
+  // ── LOOP FRAME ENGINE ──
   _loop() {
     if (!this.running) return;
 
