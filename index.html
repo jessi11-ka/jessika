@@ -3,139 +3,267 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monkey Banana Shooter - Game & Supabase Leaderboard</title>
+  <title>⚡ Cyber Monkey: Banana Blade — Neo-Pixel Edition</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", sans-serif;
     }
 
     body {
-      background: radial-gradient(circle at top, #193819, #081208);
-      color: #f1f8e9;
+      background: radial-gradient(circle at 50% 15%, #181530 0%, #0d0c18 70%, #06050c 100%);
+      color: #e4e3f5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 10px;
+      padding: 12px 8px;
     }
 
-    .main-wrapper {
+    /* ─── CYBERPUNK NEO-PIXEL DESIGN SYSTEM ─── */
+    :root {
+      --cyber-bg: rgba(18, 17, 36, 0.95);
+      --cyber-border: #2e2b52;
+      --neon-cyan: #00e5ff;
+      --neon-magenta: #ff007f;
+      --neon-gold: #ffd600;
+      --neon-green: #76ff03;
+      --glow-cyan: 0 0 14px rgba(0, 229, 255, 0.5);
+      --glow-magenta: 0 0 14px rgba(255, 0, 127, 0.5);
+      --glow-gold: 0 0 14px rgba(255, 214, 0, 0.5);
+    }
+
+    .cyber-box {
+      background: var(--cyber-bg);
+      border: 2px solid var(--cyber-border);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    .cyber-btn {
+      background: linear-gradient(180deg, #242247 0%, #15132d 100%);
+      border: 1.5px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      font-weight: 800;
+      font-size: 13px;
+      padding: 9px 18px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.16s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 3px 10px rgba(0, 229, 255, 0.2);
+    }
+    .cyber-btn:hover {
+      background: var(--neon-cyan);
+      color: #0d0c18;
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+    .cyber-btn:active {
+      transform: translateY(1px);
+    }
+
+    .cyber-btn.btn-gold {
+      border-color: var(--neon-gold);
+      color: #0d0c18;
+      background: linear-gradient(180deg, #ffd600 0%, #ffab00 100%);
+      box-shadow: var(--glow-gold);
+    }
+    .cyber-btn.btn-gold:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #ffe082 100%);
+      color: #000;
+      box-shadow: 0 0 20px rgba(255, 214, 0, 0.7);
+    }
+
+    .cyber-btn.btn-magenta {
+      border-color: var(--neon-magenta);
+      color: #fff;
+      background: linear-gradient(180deg, #ff007f 0%, #c51162 100%);
+      box-shadow: var(--glow-magenta);
+    }
+    .cyber-btn.btn-magenta:hover {
+      background: linear-gradient(180deg, #ff4081 0%, #f50057 100%);
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.8);
+    }
+
+    /* ─── WRAPPER ─── */
+    .wrapper {
       width: 100%;
       max-width: 680px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
 
-    header {
-      text-align: center;
-    }
-
-    h1 {
-      color: #ffeb3b;
-      font-size: 28px;
-      text-shadow: 0 3px 6px rgba(0,0,0,0.6);
-      margin-bottom: 4px;
-    }
-
-    .subtitle {
-      color: #a5d6a7;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      background: rgba(255, 193, 7, 0.15);
-      border: 1px solid #ffc107;
-      color: #ffe082;
-      margin-bottom: 10px;
-    }
-
-    .status-badge.online {
-      background: rgba(76, 175, 80, 0.2);
-      border-color: #4caf50;
-      color: #a5d6a7;
-    }
-
-    /* Tab Navigasi */
-    .tabs-nav {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .tab-btn {
-      background: #1e3f1e;
-      border: 2px solid #388e3c;
-      color: #c8e6c9;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 10px 24px;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active, .tab-btn:hover {
-      background: #4caf50;
-      color: #0d260d;
-      border-color: #81c784;
-      box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
-    }
-
-    /* Container Kotak */
-    .card {
-      background: rgba(25, 45, 25, 0.95);
-      border: 2px solid #388e3c;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    }
-
-    /* HUD Game */
-    .game-hud {
+    /* ─── TOP STATUS BAR ─── */
+    .top-user-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #112211;
-      padding: 10px 16px;
-      border-radius: 10px 10px 0 0;
-      border: 1px solid #2e7d32;
-      border-bottom: none;
-      font-size: 14px;
-      font-weight: bold;
+      padding: 9px 16px;
+      font-size: 12.5px;
+      border-color: #3b3769;
+    }
+    .user-info-tag {
+      display: flex;
+      gap: 16px;
+      font-weight: 700;
+      align-items: center;
+    }
+    .user-info-tag .val {
+      color: var(--neon-cyan);
+      font-family: 'Courier New', monospace;
     }
 
-    .hud-item {
+    /* ─── MAIN MENU SCREEN ─── */
+    #menuScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 18px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #menuScreen::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 250px;
+      height: 120px;
+      background: radial-gradient(ellipse, rgba(0, 229, 255, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    .neon-logo {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px var(--neon-cyan), 0 0 25px rgba(0, 229, 255, 0.5);
+    }
+    .neon-subtitle {
+      font-size: 11.5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--neon-magenta);
+      font-weight: 800;
+      text-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
+    }
+
+    .menu-btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      width: 100%;
+      max-width: 320px;
+      z-index: 2;
+    }
+
+    /* ─── GAME SCREEN (CANVAS & CYBER HUD) ─── */
+    #gameScreen { display: none; }
+
+    /* Top Cyber RPG HUD Frame (Matching Screenshot) */
+    .cyber-hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      background: rgba(14, 13, 28, 0.98);
+      border: 2px solid var(--cyber-border);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .rpg-player-cluster {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .rpg-avatar-frame {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+      background: #1c1b35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .rpg-bars-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rpg-bar-row {
       display: flex;
       align-items: center;
       gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      font-family: 'Courier New', monospace;
+    }
+    .rpg-bar-track {
+      width: 110px;
+      height: 8px;
+      background: #121124;
+      border: 1px solid #3c3866;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+    .rpg-bar-fill {
+      height: 100%;
+      transition: width 0.15s ease;
+    }
+    .fill-hp {
+      background: linear-gradient(90deg, #ff1744, #ff007f);
+      box-shadow: 0 0 6px #ff007f;
+    }
+    .fill-shield {
+      background: linear-gradient(90deg, #00b0ff, #00e5ff);
+      box-shadow: 0 0 6px #00e5ff;
+    }
+    .fill-ammo {
+      background: linear-gradient(90deg, #ff9100, #ffd600);
+      box-shadow: 0 0 6px #ffd600;
     }
 
-    .hud-val {
-      color: #ffeb3b;
+    .hud-meta-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
     }
 
-    /* Canvas Wrapper */
     .canvas-container {
       position: relative;
       width: 100%;
-      background: #000;
-      border-radius: 0 0 10px 10px;
+      background: #0f0e1c;
+      border: 2px solid var(--cyber-border);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
       overflow: hidden;
-      border: 1px solid #2e7d32;
     }
-
     canvas {
       display: block;
       width: 100%;
@@ -143,412 +271,745 @@
       cursor: crosshair;
     }
 
-    /* Game Over Modal / Overlay */
-    .game-over-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(10, 20, 10, 0.9);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      z-index: 10;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .go-title {
-      font-size: 32px;
-      color: #ff5252;
-      font-weight: 900;
-      margin-bottom: 12px;
-      text-shadow: 0 2px 8px rgba(255, 82, 82, 0.5);
-    }
-
-    .go-stats {
-      display: flex;
-      gap: 20px;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 12px 20px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-      font-size: 15px;
-    }
-
-    .go-stat-item span {
-      display: block;
-      font-size: 20px;
-      font-weight: bold;
-      color: #ffeb3b;
-      text-align: center;
-    }
-
-    .go-form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
-      max-width: 320px;
-    }
-
-    .go-form input {
-      background: #112211;
-      border: 2px solid #4caf50;
-      color: #fff;
-      font-size: 15px;
-      font-weight: bold;
-      padding: 10px;
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    .go-form input:focus {
-      outline: none;
-      border-color: #ffeb3b;
-    }
-
-    .btn-submit-score {
-      background: #ffeb3b;
-      color: #1b3a1b;
-      font-size: 15px;
-      font-weight: 800;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-submit-score:hover {
-      background: #fff;
-      transform: scale(1.02);
-    }
-
-    .btn-play-again {
-      background: transparent;
-      color: #a5d6a7;
-      border: 1px solid #4caf50;
-      font-size: 13px;
-      font-weight: bold;
-      padding: 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-play-again:hover {
-      background: rgba(76, 175, 80, 0.2);
-    }
-
-    /* Leaderboard Tabel */
-    .actions-bar {
+    .cyber-terminal-banner {
+      background: rgba(14, 13, 28, 0.98);
+      border: 2px solid var(--cyber-border);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      padding: 7px 12px;
+      font-size: 11px;
+      color: #908eb8;
+      font-family: 'Courier New', monospace;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .cyber-terminal-banner strong { color: var(--neon-cyan); }
+
+    /* ─── MODAL OVERLAYS ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 7, 16, 0.88);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 14px;
+      backdrop-filter: blur(5px);
+    }
+    .modal-content {
+      width: 100%;
+      max-width: 500px;
+      padding: 22px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
     }
 
-    .actions-bar h2 {
-      font-size: 18px;
-      color: #ffeb3b;
+    /* ─── CARDS GRID (UPGRADE & SKINS) ─── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      text-align: left;
     }
+    .feature-card {
+      background: #181733;
+      border: 1.5px solid #36335f;
+      padding: 11px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 11.5px;
+      transition: all 0.16s ease;
+    }
+    .feature-card:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    .card-icon { font-size: 24px; }
+    .card-title { font-weight: 800; color: var(--neon-gold); font-size: 12.5px; }
+    .card-desc { color: #a5a3cb; font-size: 10.5px; line-height: 1.35; }
+    .card-status { font-size: 11px; font-weight: 800; margin-top: auto; }
 
-    .btn-refresh {
-      background: #2e7d32;
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+    th { background: #201e3d; color: var(--neon-cyan); font-weight: bold; }
+    tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+    .rank-gold { color: var(--neon-gold); font-weight: bold; }
+    .rank-silver { color: #e0e0e0; font-weight: bold; }
+    .rank-bronze { color: #ffab40; font-weight: bold; }
+
+    /* Input text */
+    .cyber-input {
+      background: #100f24;
+      border: 1.5px solid var(--neon-cyan);
       color: #fff;
-      font-size: 13px;
-      padding: 6px 14px;
-      border: none;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      border-radius: 8px;
+      text-align: center;
+      width: 100%;
+      box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.2);
+    }
+    .cyber-input:focus {
+      outline: none;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.5);
+    }
+
+    /* Option Group */
+    .option-group {
+      display: flex;
+      gap: 7px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .option-btn {
+      background: #171630;
+      border: 1.5px solid #36335f;
+      color: #c4c2e6;
+      padding: 7px 13px;
+      font-size: 11.5px;
+      font-weight: 700;
       border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
+      transition: all 0.15s;
     }
-
-    .btn-refresh:hover {
-      background: #388e3c;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 10px 12px;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    th {
-      background: #2e7d32;
-      color: #ffffff;
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    tr:nth-child(even) {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    tr:hover {
-      background: rgba(76, 175, 80, 0.15);
-    }
-
-    .rank-gold { color: #ffd700; font-weight: bold; font-size: 16px; }
-    .rank-silver { color: #c0c0c0; font-weight: bold; font-size: 15px; }
-    .rank-bronze { color: #cd7f32; font-weight: bold; font-size: 15px; }
-
-    /* Developer manual test accordion */
-    details {
-      margin-top: 15px;
-      background: rgba(0,0,0,0.25);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      border: 1px dashed #388e3c;
-    }
-    summary {
-      cursor: pointer;
-      color: #81c784;
-      font-weight: bold;
+    .option-btn.selected {
+      background: #25224a;
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
     }
   </style>
 </head>
 <body>
 
-  <div class="main-wrapper">
-    <!-- Header -->
-    <header>
-      <h1>🍌 Monkey Banana Shooter</h1>
-      <p class="subtitle">Tembak Buah & Cetak Rekor Skor Tertinggi!</p>
-      <div id="statusBadge" class="status-badge">
-        <span>Memeriksa koneksi Supabase...</span>
-      </div>
-    </header>
+  <div class="wrapper">
 
-    <!-- Tombol Navigasi Tab -->
-    <div class="tabs-nav">
-      <button id="tabGameBtn" class="tab-btn active">🎮 Main Game</button>
-      <button id="tabLeaderboardBtn" class="tab-btn">🏆 Klasemen Online</button>
+    <!-- TOP USER STATUS BAR -->
+    <div class="top-user-bar cyber-box">
+      <div class="user-info-tag">
+        <div>OPERATIVE: <span id="userBarName" class="val">GUEST</span></div>
+        <div>BITS: 💎 <span id="userBarGems" class="val">0</span></div>
+        <div>SCORE: 🏆 <span id="userBarScore" class="val">0</span></div>
+      </div>
+      <div>
+        <button id="btnSwitchAccount" class="cyber-btn" style="padding: 4px 10px; font-size: 10.5px;">GANTI AKUN</button>
+      </div>
     </div>
 
-    <!-- 1. SECTION GAME PLAY -->
-    <div id="gameSection" class="card">
-      <!-- HUD Bilah Atas -->
-      <div class="game-hud">
-        <div class="hud-item">⭐ Skor: <span id="hudScore" class="hud-val">0</span></div>
-        <div class="hud-item">🌴 Wave: <span id="hudWave" class="hud-val">1</span></div>
-        <div class="hud-item">🎯 Akurasi: <span id="hudAccuracy" class="hud-val">100%</span></div>
-        <div class="hud-item"><span id="hudLives">❤️❤️❤️</span></div>
+    <!-- ══════════════════════════════════════════════
+         1. MAIN MENU SCREEN (CYBERPUNK RPG)
+    ══════════════════════════════════════════════ -->
+    <div id="menuScreen" class="cyber-box">
+      <div style="font-size: 46px; filter: drop-shadow(0 0 12px #00e5ff);">🐒 🍌 ⚡</div>
+      <div>
+        <div class="neon-logo">CYBER MONKEY</div>
+        <div class="neon-subtitle">NEO-PIXEL BANANA BLADE</div>
+      </div>
+      <div style="font-size: 12px; color: #a19fc9; max-width: 440px; line-height: 1.4;">
+        Bebaskan distrik Cyber Street dari pasukan pemburu & zookeeper mecha! Nyawa 5 Hati + Energy Shield anti-instadeath.
       </div>
 
-      <!-- Area Game Canvas -->
-      <div class="canvas-container">
-        <canvas id="gameCanvas"></canvas>
+      <div class="menu-btn-list">
+        <button id="btnMenuStart" class="cyber-btn btn-gold" style="font-size: 14px; padding: 11px;">▶ START MISSION</button>
+        <button id="btnMenuUpgrade" class="cyber-btn">⚡ UPGRADE BANANA BLADE</button>
+        <button id="btnMenuSkins" class="cyber-btn">🐵 AVATAR / CYBER SKINS</button>
+        <button id="btnMenuLeaderboard" class="cyber-btn">🏆 TOP 15 LEADERBOARD</button>
+        <button id="btnMenuProfile" class="cyber-btn">⚙️ PROFIL OPERATIVE</button>
+      </div>
+    </div>
 
-        <!-- Popup Layar Game Over -->
-        <div id="gameOverModal" class="game-over-overlay">
-          <div class="go-title">💥 GAME OVER!</div>
-
-          <div class="go-stats">
-            <div class="go-stat-item">
-              Skor Akhir
-              <span id="finalScoreVal">0</span>
+    <!-- ══════════════════════════════════════════════
+         2. GAME SCREEN (CANVAS & CYBER HUD)
+    ══════════════════════════════════════════════ -->
+    <div id="gameScreen">
+      <!-- CYBER RPG HUD (Matching Reference Top-Left Style) -->
+      <div class="cyber-hud-top">
+        <div class="rpg-player-cluster">
+          <div class="rpg-avatar-frame" id="hudAvatarIcon">🐵</div>
+          <div class="rpg-bars-col">
+            <!-- HP Bar (5 Hearts with bar) -->
+            <div class="rpg-bar-row">
+              <span style="color:#ff007f;">HP</span>
+              <div class="rpg-bar-track">
+                <div id="hudHpBarFill" class="rpg-bar-fill fill-hp" style="width: 100%;"></div>
+              </div>
+              <span id="hudHpText" style="color:#ff80ab;">5/5</span>
+              <span id="hudHeartsVisual" style="font-size:12px;">❤️❤️❤️❤️❤️</span>
             </div>
-            <div class="go-stat-item">
-              Wave
-              <span id="finalWaveVal">1</span>
+            <!-- Shield / Stamina Bar -->
+            <div class="rpg-bar-row">
+              <span style="color:#00e5ff;">SHLD</span>
+              <div class="rpg-bar-track">
+                <div id="hudShieldBarFill" class="rpg-bar-fill fill-shield" style="width: 100%;"></div>
+              </div>
+              <span id="hudStaminaText" style="color:#80d8ff;">100%</span>
             </div>
-            <div class="go-stat-item">
-              Akurasi
-              <span id="finalAccuracyVal">0%</span>
+            <!-- Ammo Bar -->
+            <div class="rpg-bar-row">
+              <span style="color:#ffd600;">AMMO</span>
+              <div class="rpg-bar-track">
+                <div id="hudAmmoBarFill" class="rpg-bar-fill fill-ammo" style="width: 100%;"></div>
+              </div>
+              <span id="hudAmmoText" style="color:#ffe57f;">12/100</span>
             </div>
           </div>
-
-          <form id="saveScoreForm" class="go-form">
-            <input type="text" id="playerNameInput" placeholder="Ketik Nama Monyetmu" required maxlength="14" value="Monyet Jagoan">
-            <button type="submit" id="btnSubmitScore" class="btn-submit-score">🚀 Kirim Skor ke Leaderboard</button>
-            <button type="button" id="btnPlayAgain" class="btn-play-again">🔄 Main Lagi Tanpa Simpan</button>
-          </form>
         </div>
+
+        <div class="hud-meta-cluster">
+          <div>💎 <span id="hudGems" style="color:#00e5ff;">0</span></div>
+          <div>⭐ <span id="hudScore" style="color:#ffd600;">0</span></div>
+          <div>SECTOR <span id="hudWave" style="color:#ff007f;">1</span></div>
+          <button id="btnGameSound" class="cyber-btn" style="padding: 4px 8px; font-size: 10px;">🔊 SFX: ON</button>
+          <button id="btnGameExit" class="cyber-btn btn-magenta" style="padding: 4px 8px; font-size: 10px;">✖ MENU</button>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="canvas-container">
+        <canvas id="gameCanvas" width="640" height="460"></canvas>
+      </div>
+
+      <!-- Cyber Terminal Banner -->
+      <div class="cyber-terminal-banner">
+        <div><strong>P1</strong>: [WASD] Gerak | [MOUSE] Aim & Klik Kiri Tembak | [SPASI] Cyber Dash | [R] Reload</div>
+        <div id="bannerP2Hint" style="display:none; color:var(--neon-cyan);"><strong>P2</strong>: [Panah] Gerak | [Enter/K] Tembak | [Shift/M] Dash</div>
       </div>
     </div>
 
-    <!-- 2. SECTION LEADERBOARD -->
-    <div id="leaderboardSection" class="card">
-      <div class="actions-bar">
-        <h2>🏆 Papan Peringkat Top 15 (Supabase)</h2>
-        <button id="btnRefresh" class="btn-refresh">🔄 Refresh</button>
+  </div><!-- /wrapper -->
+
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 1: PERTANYAAN LOGIN SEBELUM MAIN
+  ══════════════════════════════════════════════ -->
+  <div id="modalLoginPrompt" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box">
+      <div style="font-size: 42px;">⚡ 🐒 🏙️</div>
+      <h2 style="color:var(--neon-cyan); font-size:19px; font-weight:900; letter-spacing:1px;">SELAMAT DATANG OPERATIVE!</h2>
+      <p style="font-size:12.5px; color:#c4c2e6; line-height:1.5;">
+        Simpan rekor skor, gems, upgrade, dan avatar permanen di cloud database Supabase, atau main sebagai Tamu?
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:9px; margin-top:6px;">
+        <input type="text" id="loginUsernameInput" class="cyber-input" placeholder="Callsign Operative..." maxlength="14" value="CyberMonkey">
+        <button id="btnLoginConfirm" class="cyber-btn btn-gold">🔑 LOGIN / BUAT PROFIL</button>
+        <button id="btnPlayGuest" class="cyber-btn">👤 MAIN SEBAGAI TAMU</button>
       </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 15%;">Rank</th>
-            <th style="width: 35%;">Nama</th>
-            <th style="width: 25%;">Skor</th>
-            <th style="width: 12%;">Wave</th>
-            <th style="width: 13%;">Akurasi</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardBody">
-          <!-- Diisi otomatis oleh monyet.js -->
-        </tbody>
-      </table>
-
-      <!-- Accordion untuk tes manual / debug -->
-      <details>
-        <summary>🛠️ Form Uji Coba Manual (Developer Test)</summary>
-        <form id="manualScoreForm" style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-          <input type="text" id="manualName" placeholder="Nama" value="Tester" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px;">
-          <input type="number" id="manualScore" placeholder="Skor" value="2500" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px; width:90px;">
-          <input type="number" id="manualWave" placeholder="Wave" value="3" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px; width:70px;">
-          <input type="number" id="manualAcc" placeholder="Akurasi" value="80" style="background:#112211; border:1px solid #4caf50; color:#fff; padding:6px; border-radius:4px; width:70px;">
-          <button type="submit" style="background:#4caf50; color:#0b1d0c; border:none; padding:6px 12px; font-weight:bold; border-radius:4px; cursor:pointer;">+ Kirim</button>
-        </form>
-      </details>
     </div>
   </div>
 
-  <!-- 1. Muat Supabase Library resmi dari CDN -->
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 2: SETUP GAME & STORY
+  ══════════════════════════════════════════════ -->
+  <div id="modalStartStory" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box">
+      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">🎮 BRIEFING MISI CYBER STREET</h2>
+
+      <!-- Mode Solo vs Duo -->
+      <div style="text-align:left; font-size:12px;">
+        <label style="color:var(--neon-gold); font-weight:bold;">1. MODE OPERASI:</label>
+        <div class="option-group" style="margin-top:6px;">
+          <button id="btnModeSolo" class="option-btn selected">👤 SOLO OPERATIVE</button>
+          <button id="btnModeDuo" class="option-btn">👥 DUO CO-OP (2 Pemain)</button>
+        </div>
+      </div>
+
+      <!-- Story Banner Bergambar -->
+      <div class="cyber-box" style="background:#131228; padding:12px; font-size:11.5px; color:#d2d0ea; text-align:left; line-height:1.45; border-color:#383563;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <span style="font-size:22px;">📜</span>
+          <strong style="color:var(--neon-cyan);">CYBER STREET SECTOR INVASION</strong>
+        </div>
+        Sektor Wefco Mart & Soul Link diblokade oleh sindikat zookeeper pemburu bersenjata laser.
+        Manfaatkan Plasma Banana Blaster, aktifkan Cyber Dash dengan [SPASI], dan kumpulkan Bits 💎 untuk upgrade!
+      </div>
+
+      <div style="display:flex; gap:9px; justify-content:center;">
+        <button id="btnLaunchGame" class="cyber-btn btn-gold" style="flex:1;">▶ LAUNCH MISI!</button>
+        <button id="btnCloseStory" class="cyber-btn btn-magenta">BATAL</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 3: WORKSHOP UPGRADE SENJATA
+  ══════════════════════════════════════════════ -->
+  <div id="modalUpgrade" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box" style="max-width:540px;">
+      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">⚡ CYBER WEAPON FORGE</h2>
+      <div style="font-size:12.5px; color:#c4c2e6;">Saldo Bits: 💎 <span id="upgradeModalGems" style="color:var(--neon-cyan); font-weight:bold;">0</span></div>
+
+      <div class="cards-grid" id="upgradeCardsContainer">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:9px; margin-top:4px;">
+        <button id="btnDoUpgrade" class="cyber-btn btn-gold" style="flex:1;">UPGRADE SEKARANG</button>
+        <button id="btnCloseUpgrade" class="cyber-btn btn-magenta">TUTUP</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 4: LEMARI KOLEKSI SKINS
+  ══════════════════════════════════════════════ -->
+  <div id="modalSkins" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box" style="max-width:520px;">
+      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">🐵 CYBER AVATAR HANGAR</h2>
+      <div style="font-size:12.5px; color:#c4c2e6;">Total Skor Kamu: 🏆 <span id="skinsModalScore" style="color:var(--neon-gold); font-weight:bold;">0</span></div>
+
+      <div class="cards-grid" id="skinsCardsContainer">
+        <!-- Rendered by JS -->
+      </div>
+
+      <button id="btnCloseSkins" class="cyber-btn btn-magenta">TUTUP</button>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 5: LEADERBOARD SUPABASE
+  ══════════════════════════════════════════════ -->
+  <div id="modalLeaderboard" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">🏆 GLOBAL SUPABASE LEADERBOARD</h2>
+        <button id="btnRefreshLeaderboard" class="cyber-btn" style="padding:5px 10px; font-size:11px;">🔄 REFRESH</button>
+      </div>
+
+      <div style="max-height:270px; overflow-y:auto; border:1.5px solid var(--cyber-border); border-radius:8px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Operative</th>
+              <th>Score</th>
+              <th>Sector</th>
+              <th>Accuracy</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTbody"></tbody>
+        </table>
+      </div>
+
+      <button id="btnCloseLeaderboard" class="cyber-btn btn-magenta">TUTUP</button>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 6: PROFIL AKUN
+  ══════════════════════════════════════════════ -->
+  <div id="modalProfile" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box">
+      <h2 style="color:var(--neon-cyan); font-size:17px; font-weight:900;">⚙️ OPERATIVE DOSSIER</h2>
+      <div class="cyber-box" style="background:#131228; padding:15px; font-size:12.5px; text-align:left; line-height:1.75; border-color:#383563;">
+        <div>👤 Callsign: <strong id="profName" style="color:var(--neon-gold);">-</strong></div>
+        <div>💎 Total Bits: <strong id="profGems" style="color:var(--neon-cyan);">0</strong></div>
+        <div>🏆 Total Score: <strong id="profTotalScore" style="color:var(--neon-gold);">0</strong></div>
+        <div>⭐ Record High: <strong id="profHighScore" style="color:var(--neon-gold);">0</strong></div>
+        <div>🍌 Blaster Tier: <strong id="profWeapon" style="color:var(--neon-cyan);">Tier 1</strong></div>
+        <div>🐵 Active Chassis: <strong id="profSkin" style="color:var(--neon-magenta);">Cyber Classic</strong></div>
+      </div>
+
+      <div style="display:flex; gap:9px;">
+        <button id="btnLogout" class="cyber-btn btn-magenta" style="flex:1;">LOGOUT</button>
+        <button id="btnCloseProfile" class="cyber-btn" style="flex:1;">TUTUP</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       MODAL 7: GAME OVER
+  ══════════════════════════════════════════════ -->
+  <div id="modalGameOver" class="modal-overlay" style="display:none;">
+    <div class="modal-content cyber-box">
+      <div style="font-size:38px;">💥 ⚡</div>
+      <h2 style="color:var(--neon-magenta); font-size:22px; font-weight:900; letter-spacing:1px;">MISSION FAILED</h2>
+      <p style="font-size:12px; color:#c4c2e6;">Semua 5 Nyawa telah habis di medan tempur.</p>
+
+      <div class="cyber-box" style="background:#131228; padding:13px; font-size:13px; line-height:1.65; border-color:#383563;">
+        <div>Final Score: <strong id="goScore" style="color:var(--neon-gold);">0</strong></div>
+        <div>Sector Reached: <strong id="goWave" style="color:var(--neon-cyan);">1</strong></div>
+        <div>Accuracy: <strong id="goAcc" style="color:var(--neon-green);">0%</strong></div>
+        <div>Bits Salvaged: <strong id="goGems" style="color:var(--neon-cyan);">0</strong> 💎</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:9px;">
+        <button id="btnSaveAndExit" class="cyber-btn btn-gold">💾 SIMPAN HASIL KE SUPABASE & EXIT</button>
+        <button id="btnPlayAgain" class="cyber-btn">🔄 REDEPLOY SEKARANG</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════
+       SCRIPTS: SUPABASE + LEADERBOARD + GAME ENGINE
+  ══════════════════════════════════════════════ -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- 2. Muat konfigurasi environment -->
   <script src="env.js"></script>
-
-  <!-- 3. Muat Leaderboard Manager (Supabase Database) -->
-  <script src="monyet.js"></script>
-
-  <!-- 4. Muat Game Engine Monkey Banana Shooter -->
+  <script src="leaderboard.js"></script>
   <script src="game.js"></script>
 
-  <!-- 5. Script Penghubung UI & Game Loop -->
   <script>
-    const tbody = document.getElementById('leaderboardBody');
-    const statusBadge = document.getElementById('statusBadge');
-    const btnRefresh = document.getElementById('btnRefresh');
+    let currentGame = null;
+    let hudLoopInterval = null;
+    let selectedModeDuo = false;
 
-    const tabGameBtn = document.getElementById('tabGameBtn');
-    const tabLeaderboardBtn = document.getElementById('tabLeaderboardBtn');
-    const gameSection = document.getElementById('gameSection');
-    const leaderboardSection = document.getElementById('leaderboardSection');
-
-    const saveScoreForm = document.getElementById('saveScoreForm');
-    const btnPlayAgain = document.getElementById('btnPlayAgain');
-    const manualScoreForm = document.getElementById('manualScoreForm');
-
-    // Tab Switcher - Sembunyikan leaderboard saat game ditampilkan dan sebaliknya
-    function showGameTab() {
-      tabGameBtn.classList.add('active');
-      tabLeaderboardBtn.classList.remove('active');
-      gameSection.style.display = 'block';
-      leaderboardSection.style.display = 'none';
-    }
-
-    function showLeaderboardTab() {
-      tabLeaderboardBtn.classList.add('active');
-      tabGameBtn.classList.remove('active');
-      gameSection.style.display = 'none';
-      leaderboardSection.style.display = 'block';
-      loadLeaderboard();
-    }
-
-    tabGameBtn.addEventListener('click', showGameTab);
-    tabLeaderboardBtn.addEventListener('click', showLeaderboardTab);
-
-    // Default: tampilkan game dulu, sembunyikan leaderboard
-    gameSection.style.display = 'block';
-    leaderboardSection.style.display = 'none';
-
-    // Inisialisasi Game
-    const game = new MonkeyBananaShooter('gameCanvas');
-
-    // Cek Status Supabase
-    function updateConnectionStatus() {
-      const isOnline = (window.leaderboardManager && typeof window.leaderboardManager.isSupabaseReady === 'function' && window.leaderboardManager.isSupabaseReady());
-      if (isOnline) {
-        statusBadge.className = 'status-badge online';
-        statusBadge.innerHTML = '🟢 Terhubung ke Database Online Supabase';
+    // ── INITIAL LOAD ──
+    window.addEventListener('DOMContentLoaded', () => {
+      const activeUser = window.accountManager.getCurrentUser();
+      if (!activeUser) {
+        document.getElementById('modalLoginPrompt').style.display = 'flex';
       } else {
-        statusBadge.className = 'status-badge';
-        statusBadge.innerHTML = '🟡 Mode Offline / LocalStorage (Cadangan)';
+        updateUserBar();
+      }
+    });
+
+    function updateUserBar() {
+      const u = window.accountManager.getCurrentUser() || { username: 'GUEST', gems: 0, totalScore: 0 };
+      document.getElementById('userBarName').textContent = u.username.toUpperCase();
+      document.getElementById('userBarGems').textContent = (u.gems || 0).toLocaleString();
+      document.getElementById('userBarScore').textContent = (u.totalScore || 0).toLocaleString();
+    }
+
+    // ── LOGIN HANDLERS ──
+    document.getElementById('btnLoginConfirm').addEventListener('click', () => {
+      const uname = document.getElementById('loginUsernameInput').value.trim() || 'CyberMonkey';
+      window.accountManager.login(uname, false);
+      document.getElementById('modalLoginPrompt').style.display = 'none';
+      updateUserBar();
+    });
+
+    document.getElementById('btnPlayGuest').addEventListener('click', () => {
+      window.accountManager.login('Guest_Unit', true);
+      document.getElementById('modalLoginPrompt').style.display = 'none';
+      updateUserBar();
+    });
+
+    document.getElementById('btnSwitchAccount').addEventListener('click', () => {
+      document.getElementById('modalLoginPrompt').style.display = 'flex';
+    });
+
+    // ── MENU BUTTONS ──
+    document.getElementById('btnMenuStart').addEventListener('click', () => {
+      document.getElementById('modalStartStory').style.display = 'flex';
+    });
+
+    document.getElementById('btnCloseStory').addEventListener('click', () => {
+      document.getElementById('modalStartStory').style.display = 'none';
+    });
+
+    // Mode Selector
+    const btnModeSolo = document.getElementById('btnModeSolo');
+    const btnModeDuo = document.getElementById('btnModeDuo');
+    btnModeSolo.addEventListener('click', () => {
+      selectedModeDuo = false;
+      btnModeSolo.classList.add('selected');
+      btnModeDuo.classList.remove('selected');
+      document.getElementById('bannerP2Hint').style.display = 'none';
+    });
+    btnModeDuo.addEventListener('click', () => {
+      selectedModeDuo = true;
+      btnModeDuo.classList.add('selected');
+      btnModeSolo.classList.remove('selected');
+      document.getElementById('bannerP2Hint').style.display = 'block';
+    });
+
+    // ── LAUNCH GAME DARI MODAL STORY ──
+    document.getElementById('btnLaunchGame').addEventListener('click', () => {
+      document.getElementById('modalStartStory').style.display = 'none';
+      startActiveGame();
+    });
+
+    function startActiveGame() {
+      document.getElementById('menuScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+
+      const user = window.accountManager.getCurrentUser() || {};
+      const skin = user.equippedSkin || 'classic';
+      const weaponLv = user.weaponLevel || 1;
+
+      if (currentGame) {
+        currentGame.running = false;
+        currentGame.over = true;
+      }
+
+      currentGame = new MonkeyBananaShooter('gameCanvas', {
+        isDuo: selectedModeDuo,
+        skinP1: skin,
+        weaponLevel: weaponLv,
+        playerAccount: user
+      });
+
+      startHudLoop();
+    }
+
+    // ── HUD LOOP (5 NYAWA BENAR & AKURAT) ──
+    function startHudLoop() {
+      if (hudLoopInterval) clearInterval(hudLoopInterval);
+      hudLoopInterval = setInterval(() => {
+        if (!currentGame) return;
+
+        // P1 Lives (5 Hati Penuh!)
+        const p1L = currentGame.p1 ? currentGame.p1.lives : 0;
+        const maxL1 = currentGame.p1 ? currentGame.p1.maxLives : 5;
+        const hpPct = Math.max(0, Math.min(100, (p1L / maxL1) * 100));
+
+        document.getElementById('hudHpBarFill').style.width = hpPct + '%';
+        document.getElementById('hudHpText').textContent = `${Math.max(0, p1L)}/${maxL1}`;
+        document.getElementById('hudHeartsVisual').textContent = '❤️'.repeat(Math.max(0, p1L)) + '🖤'.repeat(Math.max(0, maxL1 - p1L));
+
+        // Ammo & Stamina
+        if (currentGame.p1) {
+          const ammoPct = (currentGame.p1.ammoMag / currentGame.p1.maxAmmoMag) * 100;
+          document.getElementById('hudAmmoBarFill').style.width = ammoPct + '%';
+          document.getElementById('hudAmmoText').textContent = `${currentGame.p1.ammoMag}/${currentGame.p1.ammoStock}`;
+
+          const stamPct = Math.round((currentGame.p1.stamina / currentGame.p1.maxStamina) * 100);
+          document.getElementById('hudShieldBarFill').style.width = stamPct + '%';
+          document.getElementById('hudStaminaText').textContent = stamPct + '%';
+        }
+
+        document.getElementById('hudGems').textContent = currentGame.gemsCollected;
+        document.getElementById('hudScore').textContent = currentGame.score.toLocaleString();
+        document.getElementById('hudWave').textContent = currentGame.wave;
+      }, 100);
+    }
+
+    // Sound Toggle
+    const btnSound = document.getElementById('btnGameSound');
+    btnSound.addEventListener('click', () => {
+      if (currentGame && currentGame.sfx) {
+        const isM = currentGame.sfx.toggleMute();
+        btnSound.textContent = isM ? '🔇 SFX: OFF' : '🔊 SFX: ON';
+      }
+    });
+
+    // Exit to Menu
+    document.getElementById('btnGameExit').addEventListener('click', () => {
+      if (confirm('Kembali ke Menu Utama? Progres sesi ini akan disimpan.')) {
+        if (currentGame) {
+          currentGame.running = false;
+          currentGame.over = true;
+        }
+        if (hudLoopInterval) clearInterval(hudLoopInterval);
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('menuScreen').style.display = 'flex';
+        updateUserBar();
+      }
+    });
+
+    // ── GAME OVER CALLBACK ──
+    window.onGameOver = function(score, wave, shotsFired, shotsHit, gems) {
+      if (hudLoopInterval) clearInterval(hudLoopInterval);
+
+      const acc = shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 100) : 0;
+      document.getElementById('goScore').textContent = score.toLocaleString();
+      document.getElementById('goWave').textContent = wave;
+      document.getElementById('goAcc').textContent = acc + '%';
+      document.getElementById('goGems').textContent = gems;
+
+      document.getElementById('modalGameOver').style.display = 'flex';
+
+      // Handler Simpan
+      const btnSave = document.getElementById('btnSaveAndExit');
+      btnSave.onclick = async () => {
+        btnSave.disabled = true;
+        btnSave.textContent = '⏳ Menyimpan ke Supabase...';
+
+        const user = window.accountManager.getCurrentUser();
+        const uname = user ? user.username : 'Operative';
+
+        // Simpan ke Supabase & LocalStorage
+        await window.leaderboardManager.saveScore(uname, score, wave, acc);
+        window.accountManager.addGems(gems);
+        window.accountManager.addScore(score);
+
+        btnSave.disabled = false;
+        btnSave.textContent = '💾 SIMPAN HASIL KE SUPABASE & EXIT';
+        document.getElementById('modalGameOver').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('menuScreen').style.display = 'flex';
+        updateUserBar();
+      };
+
+      const btnAgain = document.getElementById('btnPlayAgain');
+      btnAgain.onclick = () => {
+        window.accountManager.addGems(gems);
+        window.accountManager.addScore(score);
+        document.getElementById('modalGameOver').style.display = 'none';
+        startActiveGame();
+      };
+    };
+
+    // ── UPGRADE WORKSHOP ──
+    document.getElementById('btnMenuUpgrade').addEventListener('click', () => {
+      renderUpgradeModal();
+      document.getElementById('modalUpgrade').style.display = 'flex';
+    });
+    document.getElementById('btnCloseUpgrade').addEventListener('click', () => {
+      document.getElementById('modalUpgrade').style.display = 'none';
+      updateUserBar();
+    });
+
+    function renderUpgradeModal() {
+      const user = window.accountManager.getCurrentUser() || { gems: 0, weaponLevel: 1 };
+      document.getElementById('upgradeModalGems').textContent = user.gems || 0;
+
+      const levels = [
+        { lv: 1, name: 'Plasma Blaster Mk.I', desc: 'Peluru standar berkecepatan tinggi.', cost: 0, dmg: 1 },
+        { lv: 2, name: 'Twin Laser Mk.II', desc: 'Damage +100%, laju tembak lebih cepat.', cost: 5, dmg: 2 },
+        { lv: 3, name: 'Burst Plasma Mk.III', desc: '3 tembakan menyebar, daya rusak tinggi.', cost: 15, dmg: 3 },
+        { lv: 4, name: 'Explosive Nova Mk.IV', desc: 'Pisang plasma meledak area luas!', cost: 30, dmg: 4 }
+      ];
+
+      const cont = document.getElementById('upgradeCardsContainer');
+      cont.innerHTML = '';
+      levels.forEach(item => {
+        const isCurrent = user.weaponLevel === item.lv;
+        const isUnlocked = user.weaponLevel >= item.lv;
+
+        const card = document.createElement('div');
+        card.className = 'feature-card';
+        card.innerHTML = `
+          <div class="card-icon">${item.lv === 4 ? '💥' : item.lv === 3 ? '⚡' : '🍌'}</div>
+          <div class="card-title">Tier ${item.lv}: ${item.name}</div>
+          <div class="card-desc">${item.desc} (Dmg: ${item.dmg})</div>
+          <div class="card-status" style="color: ${isCurrent ? '#00e5ff' : isUnlocked ? '#76ff03' : '#ffd600'};">
+            ${isCurrent ? '✔ SEDANG AKTIF' : isUnlocked ? '✔ TERBUKA' : `💎 Biaya: ${item.cost} Bits`}
+          </div>
+        `;
+        cont.appendChild(card);
+      });
+
+      const nextLv = (user.weaponLevel || 1) + 1;
+      const nextItem = levels.find(l => l.lv === nextLv);
+      const btnUp = document.getElementById('btnDoUpgrade');
+      if (!nextItem) {
+        btnUp.disabled = true;
+        btnUp.textContent = 'MAX TIER REACHED!';
+      } else {
+        btnUp.disabled = (user.gems || 0) < nextItem.cost;
+        btnUp.textContent = `UPGRADE KE TIER ${nextItem.lv} (💎 ${nextItem.cost})`;
+        btnUp.onclick = () => {
+          if (window.accountManager.upgradeWeapon(nextItem.cost)) {
+            renderUpgradeModal();
+            updateUserBar();
+          }
+        };
       }
     }
 
-    // Load Data Leaderboard
-    async function loadLeaderboard() {
-      await leaderboardManager.renderToTable(tbody);
-      updateConnectionStatus();
+    // ── SKINS MODAL ──
+    document.getElementById('btnMenuSkins').addEventListener('click', () => {
+      renderSkinsModal();
+      document.getElementById('modalSkins').style.display = 'flex';
+    });
+    document.getElementById('btnCloseSkins').addEventListener('click', () => {
+      document.getElementById('modalSkins').style.display = 'none';
+      updateUserBar();
+    });
+
+    function renderSkinsModal() {
+      const user = window.accountManager.getCurrentUser() || { totalScore: 0, equippedSkin: 'classic' };
+      document.getElementById('skinsModalScore').textContent = (user.totalScore || 0).toLocaleString();
+
+      const skins = [
+        { id: 'classic', name: 'Cyber Ninja (Default)', icon: '🐵', req: 0, desc: 'Operative mantel taktis standar.' },
+        { id: 'ninja', name: 'Shadow Shinobi', icon: '🥷', req: 500, desc: 'Kamuflase malam, aksen pink neon.' },
+        { id: 'king', name: 'Mecha Overlord', icon: '👑', req: 1000, desc: 'Aura emas kerajaan Neo-Tokyo.' },
+        { id: 'mecha', name: 'Titan Android', icon: '🤖', req: 2500, desc: 'Pelindung baja komposit cyber.' }
+      ];
+
+      const cont = document.getElementById('skinsCardsContainer');
+      cont.innerHTML = '';
+      skins.forEach(s => {
+        const isEquipped = (user.equippedSkin || 'classic') === s.id;
+        const isUnlocked = (user.totalScore || 0) >= s.req;
+
+        const card = document.createElement('div');
+        card.className = 'feature-card';
+        card.style.cursor = isUnlocked ? 'pointer' : 'not-allowed';
+        card.innerHTML = `
+          <div class="card-icon">${s.icon}</div>
+          <div class="card-title">${s.name}</div>
+          <div class="card-desc">${s.desc}</div>
+          <div class="card-status" style="color:${isEquipped ? '#00e5ff' : isUnlocked ? '#76ff03' : '#ff007f'};">
+            ${isEquipped ? '✔ EQUIPPED' : isUnlocked ? 'KLIK UNTUK PAKAI' : `🔒 Butuh ${s.req} Skor`}
+          </div>
+        `;
+        if (isUnlocked) {
+          card.onclick = () => {
+            window.accountManager.equipSkin(s.id);
+            renderSkinsModal();
+            updateUserBar();
+          };
+        }
+        cont.appendChild(card);
+      });
     }
 
-    // Form Game Over: Kirim Skor ke Supabase
-    saveScoreForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const playerName = document.getElementById('playerNameInput').value.trim() || 'Monyet Misterius';
-      const score = game.score;
-      const wave = game.wave;
-      const accuracy = game.shotsFired > 0 ? Math.round((game.shotsHit / game.shotsFired) * 100) : 0;
+    // ── LEADERBOARD MODAL ──
+    document.getElementById('btnMenuLeaderboard').addEventListener('click', async () => {
+      document.getElementById('modalLeaderboard').style.display = 'flex';
+      loadLeaderboardData();
+    });
+    document.getElementById('btnRefreshLeaderboard').addEventListener('click', () => {
+      loadLeaderboardData();
+    });
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+      document.getElementById('modalLeaderboard').style.display = 'none';
+    });
 
-      const submitBtn = document.getElementById('btnSubmitScore');
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Mengirim ke Supabase...';
-
+    async function loadLeaderboardData() {
+      const tbody = document.getElementById('leaderboardTbody');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--neon-cyan);">⏳ Menghubungkan ke Supabase...</td></tr>';
       try {
-        await leaderboardManager.saveScore(playerName, score, wave, accuracy);
-        await loadLeaderboard();
-
-        submitBtn.innerText = '✅ Skor Tersimpan!';
-        setTimeout(() => {
-          document.getElementById('gameOverModal').style.display = 'none';
-          game.startGame();
-          // Buka tab leaderboard agar pemain langsung melihat posisi peringkatnya
-          showLeaderboardTab();
-        }, 800);
+        const scores = await window.leaderboardManager.getScores();
+        window.leaderboardManager.renderToTable(tbody, scores);
       } catch (err) {
-        alert('Gagal mengirim skor: ' + err.message);
-        submitBtn.disabled = false;
-        submitBtn.innerText = '🚀 Kirim Skor ke Leaderboard';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ff1744;">Gagal memuat leaderboard.</td></tr>';
       }
-    });
+    }
 
-    // Tombol Main Lagi dari Game Over
-    btnPlayAgain.addEventListener('click', () => {
-      document.getElementById('gameOverModal').style.display = 'none';
-      game.startGame();
-    });
+    // ── PROFIL MODAL ──
+    document.getElementById('btnMenuProfile').addEventListener('click', () => {
+      const user = window.accountManager.getCurrentUser() || {};
+      document.getElementById('profName').textContent = user.username || 'GUEST';
+      document.getElementById('profGems').textContent = (user.gems || 0).toLocaleString();
+      document.getElementById('profTotalScore').textContent = (user.totalScore || 0).toLocaleString();
+      document.getElementById('profHighScore').textContent = (user.highScore || 0).toLocaleString();
+      document.getElementById('profWeapon').textContent = 'Tier ' + (user.weaponLevel || 1);
+      document.getElementById('profSkin').textContent = user.equippedSkin || 'Cyber Ninja';
 
-    // Tombol Refresh Leaderboard
-    btnRefresh.addEventListener('click', async () => {
-      await loadLeaderboard();
+      document.getElementById('modalProfile').style.display = 'flex';
     });
-
-    // Form Manual Test
-    manualScoreForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const n = document.getElementById('manualName').value;
-      const s = Number(document.getElementById('manualScore').value);
-      const w = Number(document.getElementById('manualWave').value);
-      const a = Number(document.getElementById('manualAcc').value);
-      await leaderboardManager.saveScore(n, s, w, a);
-      await loadLeaderboard();
-      alert('Skor manual berhasil disimpan!');
+    document.getElementById('btnCloseProfile').addEventListener('click', () => {
+      document.getElementById('modalProfile').style.display = 'none';
     });
-
-    // Jalankan awal - hanya load leaderboard di background, tampilkan game
-    loadLeaderboard();
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      window.accountManager.logout();
+      document.getElementById('modalProfile').style.display = 'none';
+      document.getElementById('modalLoginPrompt').style.display = 'flex';
+      updateUserBar();
+    });
   </script>
 </body>
 </html>
