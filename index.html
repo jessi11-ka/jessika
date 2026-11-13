@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -722,7 +722,7 @@
         const heartsStr = '❤️'.repeat(Math.max(0, p1L)) + '🖤'.repeat(Math.max(0, maxL1 - p1L));
 
         document.getElementById('hudHeartsVisual').textContent = heartsStr;
-        document.getElementById('hudLivesCount').textContent = (\/\);
+        document.getElementById('hudLivesCount').textContent = '(' + Math.max(0, p1L) + '/' + maxL1 + ')';
 
         const p = currentGame.p1;
         if (p) {
