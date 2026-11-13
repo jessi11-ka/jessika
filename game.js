@@ -572,14 +572,6 @@ class MonkeyBananaShooter {
     if (p.invulnerableTimer > 0) p.invulnerableTimer--;
   }
 
-  _updatePlayerRemote(p) {
-    if (p.lives <= 0) return;
-    if (p.invulnerableTimer > 0) p.invulnerableTimer--;
-    if (p.stamina < p.maxStamina && !p.isDodging) {
-      p.stamina = Math.min(p.maxStamina, p.stamina + 0.45);
-    }
-  }
-
   // ── SPAWN MUSUH BERDASARKAN LEVEL (SEMAKIN TINGGI SEMAKIN SUSAH) ──
   _spawnEnemyForLevel(level) {
     const startX = this.arena.left + 30 + Math.random() * (this.arena.width - 60);
