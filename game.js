@@ -12,7 +12,6 @@
  *   - Level 4: Commando Sniper (laser telegraph merah, tembakan cepat).
  *   - Level 5+: Hunter Safari Jeep (mobil off-road kuning, peluru menyebar 3 arah).
  *   - Boss Unik Tiap Level dengan HP bar berwarna & pola serangan khusus.
- * - Mode Multiplayer Online via Room Code (Sistem Kode mirip Among Us dengan WebRTC PeerJS).
  * - Web Audio API Synthesizer (SFX retro arcade jernih tanpa file eksternal).
  */
 
@@ -189,12 +188,6 @@ class MonkeyBananaShooter {
     this.canvas.height = 460;
     this.ctx.imageSmoothingEnabled = false;
 
-    // Mode Multiplayer Online / Local
-    this.isDuo = options.isDuo || false;
-    this.isOnline = options.isOnline || false;
-    this.isHost = options.isHost !== false; // default host jika online
-    this.networkConn = options.networkConn || null;
-
     // Konfigurasi
     this.skinP1 = options.skinP1 || 'classic';
     this.weaponLevel = options.weaponLevel || 1;
@@ -230,19 +223,8 @@ class MonkeyBananaShooter {
     this.mouseY = this.canvas.height / 2;
     this.mouseDown = false;
 
-    // Input Remote P2 (dari WebRTC PeerJS)
-    this.remoteInputP2 = {
-      x: this.canvas.width / 2 + 40,
-      y: this.canvas.height - 80,
-      angle: -Math.PI / 2,
-      shooting: false,
-      dodging: false,
-      reloading: false
-    };
-
     // Karakter Pemain (5 NYAWA LENGKAP - ANTI MATI MENDADAK!)
-    this.p1 = this._createPlayer(this.canvas.width / 2 - (this.isDuo ? 40 : 0), this.canvas.height - 80, this.skinP1, 1);
-    this.p2 = this.isDuo ? this._createPlayer(this.canvas.width / 2 + 40, this.canvas.height - 80, 'ninja', 2) : null;
+    this.p1 = this._createPlayer(this.canvas.width / 2, this.canvas.height - 80, this.skinP1, 1);
 
     // Arena Hutan Tropis Colorful
     this.arena = {
@@ -259,7 +241,6 @@ class MonkeyBananaShooter {
     this.spawnInterval = 110;
 
     this._bindEvents();
-    this._bindNetwork();
     this.startGame();
   }
 
@@ -324,74 +305,6 @@ class MonkeyBananaShooter {
     return { flowers, ancientPillars };
   }
 
-  // ── NETWORK BINDING (WEBRTC PEERJS AMONG US STYLE) ──
-  _bindNetwork() {
-    if (!this.isOnline || !this.networkConn) return;
-
-    this.networkConn.on('data', (data) => {
-      if (this.isHost) {
-        // Host menerima input Player 2 dari Guest
-        if (data.type === 'guest_input') {
-          this.remoteInputP2 = data.payload;
-          if (this.p2 && this.p2.lives > 0) {
-            this.p2.x = data.payload.x;
-            this.p2.y = data.payload.y;
-            this.p2.angle = data.payload.angle;
-            if (data.payload.shooting) this._tryShootPlayer(this.p2);
-            if (data.payload.dodging) this._performDodge(this.p2);
-            if (data.payload.reloading) this._startReload(this.p2);
-          }
-        }
-      } else {
-        // Guest menerima snapshot game state dari Host
-        if (data.type === 'host_sync') {
-          this._applyHostSync(data.payload);
-        }
-      }
-    });
-  }
-
-  _broadcastStateToGuest() {
-    if (!this.isOnline || !this.isHost || !this.networkConn || !this.networkConn.open) return;
-
-    // Kirim snapshot state ringkas setiap beberapa frame
-    const payload = {
-      score: this.score,
-      wave: this.wave,
-      p1: { x: this.p1.x, y: this.p1.y, angle: this.p1.angle, lives: this.p1.lives, stamina: this.p1.stamina, ammo: this.p1.ammoMag, skin: this.p1.skin },
-      p2Lives: this.p2 ? this.p2.lives : 0,
-      enemies: this.hunters.map(h => ({ x: h.x, y: h.y, angle: h.angle, type: h.type, hp: h.hp, maxHp: h.maxHp })),
-      bullets: this.hunterBullets.map(b => ({ x: b.x, y: b.y })),
-      bananas: this.bananas.map(b => ({ x: b.x, y: b.y, rot: b.rotation })),
-      items: this.itemDrops.map(it => ({ x: it.x, y: it.y, type: it.type })),
-      boss: this.currentBoss ? { x: this.currentBoss.x, y: this.currentBoss.y, hp: this.currentBoss.hp, maxHp: this.currentBoss.maxHp, name: this.currentBoss.name } : null
-    };
-
-    try {
-      this.networkConn.send({ type: 'host_sync', payload });
-    } catch (_) {}
-  }
-
-  _applyHostSync(state) {
-    this.score = state.score;
-    this.wave = state.wave;
-    this.p1.x = state.p1.x;
-    this.p1.y = state.p1.y;
-    this.p1.angle = state.p1.angle;
-    this.p1.lives = state.p1.lives;
-
-    if (this.p2) {
-      this.p2.lives = state.p2Lives;
-    }
-
-    // Sync entitas
-    this.hunters = state.enemies.map(e => ({ ...e, radius: e.type === 'jeep' ? 26 : 16 }));
-    this.hunterBullets = state.bullets.map(b => ({ ...b, radius: 4 }));
-    this.bananas = state.bananas.map(b => ({ ...b, radius: 8, rotation: b.rot }));
-    this.itemDrops = state.items.map(it => ({ ...it, floatOffset: 0 }));
-    this.currentBoss = state.boss ? { ...state.boss, radius: 36 } : null;
-  }
-
   // ── BIND INPUT EVENT ──
   _bindEvents() {
     this.canvas.addEventListener('mousemove', e => {
@@ -403,15 +316,7 @@ class MonkeyBananaShooter {
     this.canvas.addEventListener('mousedown', e => {
       if (e.button === 0 && this.running && !this.over) {
         this.mouseDown = true;
-        const playerControl = (this.isOnline && !this.isHost && this.p2) ? this.p2 : this.p1;
-        this._tryShootPlayer(playerControl);
-
-        if (this.isOnline && !this.isHost && this.networkConn && this.networkConn.open) {
-          this.networkConn.send({
-            type: 'guest_input',
-            payload: { x: this.p2.x, y: this.p2.y, angle: this.p2.angle, shooting: true }
-          });
-        }
+        this._tryShootPlayer(this.p1);
       }
     });
 
@@ -422,30 +327,15 @@ class MonkeyBananaShooter {
       this.keys[e.code] = true;
       if (!this.running || this.over) return;
 
-      const activePlayer = (this.isOnline && !this.isHost && this.p2) ? this.p2 : this.p1;
-
-      // P1 Dodge: SPASI
+      // Dodge: SPASI
       if (e.code === 'Space') {
         e.preventDefault();
-        this._performDodge(activePlayer);
-        if (this.isOnline && !this.isHost && this.networkConn && this.networkConn.open) {
-          this.networkConn.send({ type: 'guest_input', payload: { x: activePlayer.x, y: activePlayer.y, angle: activePlayer.angle, dodging: true } });
-        }
+        this._performDodge(this.p1);
       }
 
-      // P1 Reload: R
+      // Reload: R
       if (e.code === 'KeyR') {
-        this._startReload(activePlayer);
-        if (this.isOnline && !this.isHost && this.networkConn && this.networkConn.open) {
-          this.networkConn.send({ type: 'guest_input', payload: { x: activePlayer.x, y: activePlayer.y, angle: activePlayer.angle, reloading: true } });
-        }
-      }
-
-      // Local Duo (Jika bukan online, player 2 main via tombol panah + Enter/Shift)
-      if (this.isDuo && !this.isOnline && this.p2 && this.p2.lives > 0) {
-        if (e.code === 'Enter' || e.code === 'Numpad0' || e.code === 'KeyK') this._tryShootPlayer(this.p2);
-        if (e.code === 'ShiftRight' || e.code === 'KeyM') this._performDodge(this.p2);
-        if (e.code === 'KeyL' || e.code === 'KeyP') this._startReload(this.p2);
+        this._startReload(this.p1);
       }
     });
 
@@ -472,11 +362,8 @@ class MonkeyBananaShooter {
     this.floatingTexts = [];
     this.currentBoss = null;
 
-    // Reset P1 & P2
-    this.p1 = this._createPlayer(this.canvas.width / 2 - (this.isDuo ? 40 : 0), this.canvas.height - 80, this.skinP1, 1);
-    if (this.isDuo) {
-      this.p2 = this._createPlayer(this.canvas.width / 2 + 40, this.canvas.height - 80, 'ninja', 2);
-    }
+    // Reset P1
+    this.p1 = this._createPlayer(this.canvas.width / 2, this.canvas.height - 80, this.skinP1, 1);
 
     this._startWave(1);
     this._loop();
@@ -598,63 +485,38 @@ class MonkeyBananaShooter {
 
     if (this.shakeTimer > 0) this.shakeTimer--;
 
-    // 1. Update Player 1 (Host / Solo)
-    if (!this.isOnline || this.isHost) {
-      this._updatePlayerMovement(this.p1, 'KeyW', 'KeyS', 'KeyA', 'KeyD', this.mouseX, this.mouseY);
+    // 1. Update Player 1 (Solo)
+    this._updatePlayerMovement(this.p1, 'KeyW', 'KeyS', 'KeyA', 'KeyD', this.mouseX, this.mouseY);
+
+    // 2. Spawning Musuh Berdasarkan Level
+    this.spawnTimer--;
+    if (this.spawnTimer <= 0 && this.waveSpawnedEnemies < this.waveTotalEnemies) {
+      this.spawnTimer = this.spawnInterval;
+      this._spawnEnemyForLevel(this.wave);
+      this.waveSpawnedEnemies++;
     }
 
-    // 2. Update Player 2
-    if (this.p2 && this.p2.lives > 0) {
-      if (this.isOnline && this.isHost) {
-        // P2 digerakkan dari remote input
-        this._updatePlayerRemote(this.p2);
-      } else if (!this.isOnline) {
-        // P2 Local via Panah Keyboard
-        const p2TargetX = this.keys['ArrowLeft'] ? this.p2.x - 50 : this.keys['ArrowRight'] ? this.p2.x + 50 : this.p2.x;
-        const p2TargetY = this.keys['ArrowUp'] ? this.p2.y - 50 : this.keys['ArrowDown'] ? this.p2.y + 50 : this.p2.y;
-        this._updatePlayerMovement(this.p2, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', p2TargetX, p2TargetY);
-      }
+    // 3. Spawn Boss saat seluruh musuh wave habis
+    if (this.waveSpawnedEnemies >= this.waveTotalEnemies && this.hunters.length === 0 && !this.currentBoss) {
+      this._spawnBossForLevel(this.wave);
     }
 
-    // Hanya Host yang mengkalkulasi musuh & spawn agar sinkron
-    if (!this.isOnline || this.isHost) {
-      // 3. Spawning Musuh Berdasarkan Level
-      this.spawnTimer--;
-      if (this.spawnTimer <= 0 && this.waveSpawnedEnemies < this.waveTotalEnemies) {
-        this.spawnTimer = this.spawnInterval;
-        this._spawnEnemyForLevel(this.wave);
-        this.waveSpawnedEnemies++;
-      }
-
-      // 4. Spawn Boss saat seluruh musuh wave habis
-      if (this.waveSpawnedEnemies >= this.waveTotalEnemies && this.hunters.length === 0 && !this.currentBoss) {
-        this._spawnBossForLevel(this.wave);
-      }
-
-      // 5. Update Musuh & Boss
-      for (let i = this.hunters.length - 1; i >= 0; i--) {
-        this._updateHunter(this.hunters[i], i);
-      }
-      if (this.currentBoss) {
-        this._updateBoss(this.currentBoss);
-      }
-
-      // 6. Broadcast ke Player 2
-      if (this.isOnline && this.isHost && Math.random() < 0.5) {
-        this._broadcastStateToGuest();
-      }
+    // 4. Update Musuh & Boss
+    for (let i = this.hunters.length - 1; i >= 0; i--) {
+      this._updateHunter(this.hunters[i], i);
+    }
+    if (this.currentBoss) {
+      this._updateBoss(this.currentBoss);
     }
 
-    // 7. Bananas & Bullets
+    // 5. Bananas & Bullets
     this._updateBananas();
     this._updateHunterBullets();
     this._updateItemDrops();
     this._updateParticles();
 
     // 8. CEK GAME OVER: HANYA JIKA SELURUH NYAWA BENAR-BENAR 0!
-    const p1Dead = this.p1.lives <= 0;
-    const p2Dead = this.isDuo ? (!this.p2 || this.p2.lives <= 0) : true;
-    if (!this.over && p1Dead && p2Dead) {
+    if (!this.over && this.p1.lives <= 0) {
       this._triggerGameOver();
     }
   }
@@ -791,7 +653,7 @@ class MonkeyBananaShooter {
   // ── UPDATE MUSUH ──
   _updateHunter(h, index) {
     h.walkCycle += 0.1;
-    const targetPlayer = (this.p2 && this.p2.lives > 0 && Math.random() > 0.5) ? this.p2 : this.p1;
+    const targetPlayer = this.p1;
     const angleToP = Math.atan2(targetPlayer.y - h.y, targetPlayer.x - h.x);
     h.angle = angleToP;
 
@@ -828,8 +690,8 @@ class MonkeyBananaShooter {
     }
 
     // Tabrakan Musuh dengan Pemain
-    [this.p1, this.p2].forEach(p => {
-      if (!p || p.lives <= 0) return;
+    const p = this.p1;
+    if (p.lives > 0) {
       const d = Math.hypot(h.x - p.x, h.y - p.y);
       if (d < h.radius + p.radius) {
         if (p.invulnerableTimer === 0) {
@@ -840,13 +702,13 @@ class MonkeyBananaShooter {
         h.x += Math.cos(pushAngle) * 50;
         h.y += Math.sin(pushAngle) * 50;
       }
-    });
+    }
   }
 
   // ── UPDATE BOSS ──
   _updateBoss(boss) {
     boss.walkCycle += 0.08;
-    const targetPlayer = (this.p2 && this.p2.lives > 0 && Math.random() > 0.5) ? this.p2 : this.p1;
+    const targetPlayer = this.p1;
     const angleToP = Math.atan2(targetPlayer.y - boss.y, targetPlayer.x - boss.x);
     boss.angle = angleToP;
 
@@ -879,8 +741,8 @@ class MonkeyBananaShooter {
       }
     }
 
-    [this.p1, this.p2].forEach(p => {
-      if (!p || p.lives <= 0) return;
+    const p = this.p1;
+    if (p.lives > 0) {
       const d = Math.hypot(boss.x - p.x, boss.y - p.y);
       if (d < boss.radius + p.radius) {
         if (p.invulnerableTimer === 0) {
@@ -891,7 +753,7 @@ class MonkeyBananaShooter {
         p.x = Math.max(this.arena.left + 25, Math.min(this.arena.right - 25, p.x + Math.cos(pushAngle) * 50));
         p.y = Math.max(60, Math.min(this.canvas.height - 40, p.y + Math.sin(pushAngle) * 50));
       }
-    });
+    }
   }
 
   // ── UPDATE PELURU PISANG ──
@@ -1009,8 +871,8 @@ class MonkeyBananaShooter {
         continue;
       }
 
-      [this.p1, this.p2].forEach(p => {
-        if (!p || p.lives <= 0) return;
+      const p = this.p1;
+      if (p && p.lives > 0) {
         const d = Math.hypot(hb.x - p.x, hb.y - p.y);
         if (d < hb.radius + p.radius) {
           this.hunterBullets.splice(i, 1);
@@ -1019,7 +881,7 @@ class MonkeyBananaShooter {
             this._damagePlayer(p, 1);
           }
         }
-      });
+      }
     }
   }
 
@@ -1048,8 +910,8 @@ class MonkeyBananaShooter {
         continue;
       }
 
-      [this.p1, this.p2].forEach(p => {
-        if (!p || p.lives <= 0) return;
+      const p = this.p1;
+      if (p && p.lives > 0) {
         const d = Math.hypot(item.x - p.x, item.y - p.y);
         if (d < p.radius + 18) {
           if (item.type === 'gem') {
@@ -1068,7 +930,7 @@ class MonkeyBananaShooter {
           }
           this.itemDrops.splice(i, 1);
         }
-      });
+      }
     }
   }
 
@@ -1182,9 +1044,8 @@ class MonkeyBananaShooter {
     // 6. Bananas (Golden Spinning Projectiles)
     this.bananas.forEach(b => this._drawGoldenBanana(ctx, b));
 
-    // 7. Players (P1 & P2 Pixel Monkey)
+    // 7. Players (P1 Pixel Monkey)
     if (this.p1.lives > 0) this._drawPixelMonkey(ctx, this.p1);
-    if (this.p2 && this.p2.lives > 0) this._drawPixelMonkey(ctx, this.p2);
 
     // 8. Particles
     this.particles.forEach(p => {

@@ -1,11 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🐵 Monkey Banana Shooter — Vibrant Colorful Pixel Edition</title>
-  <!-- WebRTC PeerJS for Online Room Code Multiplayer -->
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -259,19 +257,7 @@
       box-shadow: 0 0 10px rgba(255, 214, 0, 0.5);
     }
 
-    /* Room Code Box (Among Us Style) */
-    .room-code-display {
-      background: #091a0c;
-      border: 3px dashed #ffd600;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      color: #ffd600;
-      text-shadow: 0 0 10px rgba(255, 214, 0, 0.6);
-      user-select: all;
-    }
+    /* Room Code Box (Among Us Style) - removed */
 
     /* ─── INTRO SPLASH SCREEN (DIAWAL SEBELUM GAME MENU) ─── */
     #introSplashScreen {
@@ -418,8 +404,7 @@
       </div>
 
       <div class="menu-btn-list">
-        <button id="btnMenuSolo" class="arcade-btn btn-gold" style="font-size: 14px; padding: 11px;">▶ MAIN SOLO (1 PEMAIN)</button>
-        <button id="btnMenuOnlineLobby" class="arcade-btn btn-cyan" style="font-size: 14px; padding: 11px;">👥 MULTIPLAYER ONLINE (KODE ROOM)</button>
+        <button id="btnMenuSolo" class="arcade-btn btn-gold" style="font-size: 14px; padding: 11px;">▶ MULAI MAIN</button>
         <button id="btnMenuUpgrade" class="arcade-btn">⚡ UPGRADE SENJATA</button>
         <button id="btnMenuSkins" class="arcade-btn">🐵 TOKO KOSTUM / AVATAR</button>
         <button id="btnMenuLeaderboard" class="arcade-btn">🏆 TOP 15 LEADERBOARD</button>
@@ -449,41 +434,11 @@
 
       <div class="controls-banner">
         <div><strong>P1</strong>: [WASD] Gerak | [MOUSE] Bidik & [KLIK KIRI] Tembak | [SPASI] Dodge Roll | [R] Isi Peluru</div>
-        <div id="bannerMultiplayerHint" style="display:none; color:#ffd600;"><strong>P2 (Teman Online)</strong>: Terhubung via WebRTC DataChannel</div>
       </div>
     </div>
 
   </div><!-- /wrapper -->
-
-
-  <!-- ══════════════════════════════════════════════
-       MODAL: MULTIPLAYER ONLINE (AMONG US ROOM CODE)
-  ══════════════════════════════════════════════ -->
-  <div id="modalMultiplayer" class="modal-overlay" style="display:none;">
-    <div class="modal-content arcade-box" style="max-width:540px;">
-      <h2 style="color:#ffd600; font-size:19px; font-weight:900;">👥 MULTIPLAYER ONLINE (KODE ROOM)</h2>
-      <p style="font-size:12.5px; color:#c8e6c9;">
-        Main bersama teman secara real-time dari komputer atau HP yang berbeda menggunakan sistem kode room!
-      </p>
-
-      <!-- TAB PILIHAN: BUAT ROOM VS GABUNG ROOM -->
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px;">
-        <!-- Card Host -->
-        <div class="arcade-box" style="padding:14px; background:rgba(10,30,12,0.9); display:flex; flex-direction:column; gap:8px;">
-          <h3 style="color:#00e5ff; font-size:14px;">1. BUAT ROOM (HOST)</h3>
-          <p style="font-size:11px; color:#a5d6a7;">Buat kode room dan bagikan ke temanmu.</p>
-          <button id="btnCreateRoom" class="arcade-btn btn-cyan" style="width:100%;">🔑 BUAT KODE ROOM</button>
-        </div>
-
-        <!-- Card Join -->
-        <div class="arcade-box" style="padding:14px; background:rgba(10,30,12,0.9); display:flex; flex-direction:column; gap:8px;">
-          <h3 style="color:#ffd600; font-size:14px;">2. GABUNG ROOM (JOIN)</h3>
-          <input type="text" id="inputJoinRoomCode" class="arcade-input" placeholder="Ketik Kode Room..." maxlength="6" style="text-transform:uppercase;">
-          <button id="btnJoinRoom" class="arcade-btn btn-gold" style="width:100%;">🚀 GABUNG SEKARANG</button>
-        </div>
-      </div>
-
-      <!-- AREA STATUS KODE ROOM (Jika sedang host) -->
+<!-- AREA STATUS KODE ROOM (Jika sedang host) -->
       <div id="roomStatusArea" style="display:none; flex-direction:column; gap:8px; margin-top:6px;">
         <div style="font-size:12px; color:#c8e6c9;">KODE ROOM KAMU:</div>
         <div id="displayRoomCode" class="room-code-display">KERA7</div>
@@ -658,12 +613,6 @@
     let currentGame = null;
     let hudLoopInterval = null;
 
-    // Multiplayer State
-    let isMultiplayerOnline = false;
-    let isHostMode = true;
-    let currentPeer = null;
-    let activeConnection = null;
-
     // ── INTRO SPLASH SCREEN LOGIC (DIAWAL SEBELUM GAME MENU) ──
     let splashDismissed = false;
     function dismissSplashScreen() {
@@ -737,109 +686,10 @@
 
     // ── MAIN SOLO ──
     document.getElementById('btnMenuSolo').addEventListener('click', () => {
-      isMultiplayerOnline = false;
-      document.getElementById('bannerMultiplayerHint').style.display = 'none';
-      startActiveGame({ isDuo: false, isOnline: false });
+      startActiveGame();
     });
-
-    // ── MULTIPLAYER MODAL ──
-    document.getElementById('btnMenuOnlineLobby').addEventListener('click', () => {
-      document.getElementById('modalMultiplayer').style.display = 'flex';
-      document.getElementById('roomStatusArea').style.display = 'none';
-    });
-    document.getElementById('btnCloseMultiplayer').addEventListener('click', () => {
-      document.getElementById('modalMultiplayer').style.display = 'none';
-      if (currentPeer) {
-        currentPeer.destroy();
-        currentPeer = null;
-      }
-    });
-
-    // 1. HOST: BUAT ROOM CODE
-    document.getElementById('btnCreateRoom').addEventListener('click', () => {
-      const randomCode = 'MK' + Math.floor(1000 + Math.random() * 9000); // contoh: MK5821
-      document.getElementById('displayRoomCode').textContent = randomCode;
-      document.getElementById('roomStatusArea').style.display = 'flex';
-      document.getElementById('networkStatusText').textContent = '⏳ Membuka jaringan WebRTC...';
-      document.getElementById('btnHostStartGame').style.display = 'none';
-
-      if (currentPeer) currentPeer.destroy();
-
-      currentPeer = new Peer('mbs-room-' + randomCode);
-
-      currentPeer.on('open', (id) => {
-        document.getElementById('networkStatusText').innerHTML = '🟢 Room Online! Menunggu teman memasukkan kode <strong>' + randomCode + '</strong>...';
-      });
-
-      currentPeer.on('connection', (conn) => {
-        activeConnection = conn;
-        isMultiplayerOnline = true;
-        isHostMode = true;
-
-        conn.on('open', () => {
-          document.getElementById('networkStatusText').innerHTML = '🎉 <strong>Teman Berhasil Terhubung!</strong> Klik tombol di bawah untuk mulai main bersama!';
-          document.getElementById('btnHostStartGame').style.display = 'block';
-        });
-      });
-
-      currentPeer.on('error', (err) => {
-        document.getElementById('networkStatusText').textContent = '⚠️ Info jaringan: ' + err.type;
-      });
-    });
-
-    // HOST: MULAI MAIN SETELAH GUEST MASUK
-    document.getElementById('btnHostStartGame').addEventListener('click', () => {
-      document.getElementById('modalMultiplayer').style.display = 'none';
-      document.getElementById('bannerMultiplayerHint').style.display = 'block';
-      startActiveGame({ isDuo: true, isOnline: true, isHost: true, networkConn: activeConnection });
-    });
-
-    // 2. GUEST: GABUNG KODE ROOM
-    document.getElementById('btnJoinRoom').addEventListener('click', () => {
-      const code = document.getElementById('inputJoinRoomCode').value.trim().toUpperCase();
-      if (!code) {
-        alert('Silakan ketik Kode Room dari Host!');
-        return;
-      }
-
-      document.getElementById('roomStatusArea').style.display = 'flex';
-      document.getElementById('displayRoomCode').textContent = code;
-      document.getElementById('networkStatusText').textContent = '⏳ Menghubungkan ke Room ' + code + '...';
-
-      if (currentPeer) currentPeer.destroy();
-      currentPeer = new Peer();
-
-      currentPeer.on('open', () => {
-        const conn = currentPeer.connect('mbs-room-' + code);
-        activeConnection = conn;
-
-        conn.on('open', () => {
-          isMultiplayerOnline = true;
-          isHostMode = false;
-          document.getElementById('networkStatusText').textContent = '✅ Terhubung ke Host! Meluncur ke game...';
-          setTimeout(() => {
-            document.getElementById('modalMultiplayer').style.display = 'none';
-            document.getElementById('bannerMultiplayerHint').style.display = 'block';
-            startActiveGame({ isDuo: true, isOnline: true, isHost: false, networkConn: activeConnection });
-          }, 800);
-        });
-
-        conn.on('error', (err) => {
-          document.getElementById('networkStatusText').textContent = '❌ Gagal terhubung: Pastikan kode room benar & Host sedang online.';
-        });
-      });
-    });
-
-    // 3. DUO LOCAL 1 KEYBOARD
-    document.getElementById('btnModeLocalDuo').addEventListener('click', () => {
-      document.getElementById('modalMultiplayer').style.display = 'none';
-      document.getElementById('bannerMultiplayerHint').style.display = 'block';
-      document.getElementById('bannerMultiplayerHint').textContent = 'P2 (Local): [Panah] Gerak | [Enter/K] Tembak | [Shift/M] Dodge Roll';
-      startActiveGame({ isDuo: true, isOnline: false });
-    });
-
     // ── LAUNCH ENGINE ──
-    function startActiveGame(opts = {}) {
+    function startActiveGame() {
       document.getElementById('menuScreen').style.display = 'none';
       document.getElementById('gameScreen').style.display = 'block';
 
@@ -853,10 +703,6 @@
       }
 
       currentGame = new MonkeyBananaShooter('gameCanvas', {
-        isDuo: opts.isDuo || false,
-        isOnline: opts.isOnline || false,
-        isHost: opts.isHost !== false,
-        networkConn: opts.networkConn || null,
         skinP1: skin,
         weaponLevel: weaponLv,
         playerAccount: user
@@ -871,27 +717,18 @@
       hudLoopInterval = setInterval(() => {
         if (!currentGame) return;
 
-        // P1 Lives (5 Hati Penuh!)
         const p1L = currentGame.p1 ? currentGame.p1.lives : 0;
         const maxL1 = currentGame.p1 ? currentGame.p1.maxLives : 5;
-        let heartsStr = '❤️'.repeat(Math.max(0, p1L)) + '🖤'.repeat(Math.max(0, maxL1 - p1L));
-
-        if (currentGame.isDuo && currentGame.p2) {
-          const p2L = currentGame.p2.lives;
-          const maxL2 = currentGame.p2.maxLives;
-          heartsStr += ' | P2: ' + ('💙'.repeat(Math.max(0, p2L)) + '🖤'.repeat(Math.max(0, maxL2 - p2L)));
-        }
+        const heartsStr = '❤️'.repeat(Math.max(0, p1L)) + '🖤'.repeat(Math.max(0, maxL1 - p1L));
 
         document.getElementById('hudHeartsVisual').textContent = heartsStr;
-        document.getElementById('hudLivesCount').textContent = `(${Math.max(0, p1L)}/${maxL1})`;
+        document.getElementById('hudLivesCount').textContent = (\/\);
 
-        // Ammo & Stamina
-        const activeP = (currentGame.isOnline && !currentGame.isHost && currentGame.p2) ? currentGame.p2 : currentGame.p1;
-        if (activeP) {
-          document.getElementById('hudAmmoMag').textContent = activeP.ammoMag;
-          document.getElementById('hudAmmoStock').textContent = activeP.ammoStock;
-
-          const stamPct = Math.round((activeP.stamina / activeP.maxStamina) * 100);
+        const p = currentGame.p1;
+        if (p) {
+          document.getElementById('hudAmmoMag').textContent = p.ammoMag;
+          document.getElementById('hudAmmoStock').textContent = p.ammoStock;
+          const stamPct = Math.round((p.stamina / p.maxStamina) * 100);
           document.getElementById('hudStamina').textContent = stamPct + '%';
         }
 
@@ -988,7 +825,7 @@
         } catch (_) {}
 
         document.getElementById('modalGameOver').style.display = 'none';
-        startActiveGame({ isDuo: false, isOnline: false });
+        startActiveGame();
       };
     };
 
